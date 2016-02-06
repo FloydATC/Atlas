@@ -59,7 +59,12 @@ sub sites {
 
   #print "$class hosts c=$c dbh=$dbh id=$id\n";
   my $sth = $dbh->prepare("
-    NOT YET IMPLEMENTED
+    SELECT sites.*
+    FROM sites
+    LEFT JOIN sitegroupmembers ON (sitegroupmembers.site = sites.id)
+    LEFT JOIN sitegroups ON (sitegroups.id = sitegroupmembers.sitegroup)
+    WHERE sitegroups.id = ?
+    ORDER BY sites.name, sites.id
   ");
   $sth->execute($id);
   my @sites = ();

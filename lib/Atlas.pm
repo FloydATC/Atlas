@@ -1,6 +1,7 @@
 package Atlas;
 use Mojo::Base 'Mojolicious';
 
+use Mojo::mysql;
 use DBI;
 use Atlas::Model::World;
 use Atlas::Model::Site;
@@ -23,6 +24,17 @@ sub startup {
     my $DBPASS = 'atlas';  
     return DBI->connect("dbi:$DBTYPE:$DBNAME:$DBHOST", $DBUSER, $DBPASS);
   });
+
+  $self->helper( mysql => sub {
+    my $c = shift;
+    my $DBHOST = 'zeus';
+    my $DBNAME = 'atlas';
+    my $DBUSER = 'atlas';
+    my $DBPASS = 'atlas';  
+    state $handle = Mojo::mysql->new("mysql://$DBUSER:$DBPASS\@$DBHOST/$DBNAME");
+  });
+
+  
 
   $self->helper( atlas_world_sitegroups => sub { return Atlas::Model::World->sitegroups(@_); });
   $self->helper( atlas_world_sites      => sub { return Atlas::Model::World->sites(@_); });

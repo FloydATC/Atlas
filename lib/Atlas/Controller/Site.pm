@@ -1,7 +1,7 @@
 package Atlas::Controller::Site;
 use Mojo::Base 'Mojolicious::Controller';
 
-
+use Data::Dumper;
 
 # Action
 sub welcome {
@@ -16,6 +16,7 @@ sub map {
 
   # Render response
   $self->render( template => 'site_map' );
+
 }
 
 sub move {
@@ -28,13 +29,30 @@ sub move {
 sub svg {
   my $self = shift;
 
-  # Render response
-  $self->render( template => 'site_svg', type => 'svg', format => 'svg' );
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $id = $self->param('id');
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Site->query_hosts, $id, $delay->begin);
+    },
+    sub {
+      my ($delay, $err, $results) = @_;
+      die $err if $err;
+      $self->stash( hosts => $results->hashes->to_array );
+
+      # Render response
+      $self->render( template => 'site_svg', type => 'svg', format => 'svg' );
+    }
+  )->wait;
+
 }
 
 sub popup {
   my $self = shift;
-  
+
+  # Render response;  
   $self->render( template => 'site_popup', type => 'html', format => 'html' );
 }
 
