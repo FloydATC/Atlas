@@ -1,14 +1,13 @@
 % title 'Site popup';
 % layout 'popup';
-% my $id = $c->param('id');
-% my $site = atlas_site_get(dbh, $id);
-<%== atlas_site_link(dbh, $site->{'id'}) %><BR>
+% my $site = $c->stash('site');
+<A href="/site/map?id=<%= $site->{'id'} %>"><%= $site->{'name'} %></A><BR>
 <HR>
 Documentation<BR>
 <A href="javascript:begin_drag_object('site<%= $site->{'id'} %>')">Move...</A><BR>
 <HR>
-% foreach my $host (atlas_site_hosts(dbh, $id)) {
-<%== atlas_host_link(dbh, $host->{'id'}) %><BR>
+% foreach my $host (@{$c->stash('hosts')}) {
+<A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>
 % }
 
 

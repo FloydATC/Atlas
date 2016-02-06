@@ -1,1 +1,60 @@
 
+svg.sitegroup rect {
+	fill: #FFDFDF;
+	stroke: black;
+	stroke-width: 1px;
+	opacity: 0.5;
+}
+
+svg.hostgroup rect {
+	fill: #DFFFDF;
+	stroke: black;
+	stroke-width: 2px;
+	opacity: 0.5;
+}
+
+svg.sitegroup text {
+	font-family: sans-serif;
+	font-size: 12pt;
+	fill: black;
+}
+
+svg.hostgroup text {
+	font-family: sans-serif;
+	font-size: 12pt;
+	fill: black;
+}
+
+
+svg circle {
+	fill: lightgray;
+	stroke: black;
+	stroke-width: 2px;
+}
+
+svg circle.alive {
+	fill: lightgreen;
+}
+
+svg circle.warning {
+	fill: yellow;
+}
+
+svg circle.dead {
+	fill: pink;
+}
+
+
+svg.host text {
+	font-family: sans-serif;
+	font-size: 9pt;
+	fill: black;
+}
+
+svg.site text {
+	font-family: sans-serif;
+	font-size: 9pt;
+	fill: black;
+}
+
+

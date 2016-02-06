@@ -1,11 +1,15 @@
 % layout 'plain';
 % my $id = $c->param('id');
-% my $site = atlas_site_get(dbh, $id);
-
+% my $site = $c->stash('site');
+% title 'sitemap'.$id;
 
 %# Get hostgroups
 % foreach my $hostgroup (@{$c->stash('hostgroups')}) {
-<svg x="<%= $hostgroup->{'x'}-25 %>" y="<%= $hostgroup->{'y'}-25 %>"
+%   my $x = $hostgroup->{'x'};
+%   my $y = $hostgroup->{'y'};
+
+<svg x="<%= $x-50 %>" y="<%= $y-50 %>"
+  class="hostgroup"
   id="hostgroup<%= $hostgroup->{'id'} %>"
   onclick="map.hostgroup_click(evt, this.id)"
   onmousedown="map.hostgroup_mousedown(evt, this.id)"
@@ -16,19 +20,24 @@
 >
 <rect 
   x="0" 
-  y="0" 
+  y="0"
+  rx="20"
+  ry="20" 
   width="<%= $hostgroup->{'width'}+100 %>"
   height="<%= $hostgroup->{'height'}+100 %>" 
-  stroke="blue" 
-  fill="yellow" />
-<text x="5" y="5" font-size="9"><%= $hostgroup->{'name'} %></text>
+/>
+<text x="10" y="20" font-size="9"><%= $hostgroup->{'name'} %></text>
 </svg>
 % }
 
 
 %# Get hosts
 % foreach my $host (@{$c->stash('hosts')}) {
-<svg x="<%= $host->{'x'}-25 %>" y="<%= $host->{'y'}-25 %>"
+%   my $x = $host->{'x'};
+%   my $y = $host->{'y'};
+
+<svg x="<%= $x-25 %>" y="<%= $y-25 %>"
+  class="host"
   id="host<%= $host->{'id'} %>"
   onclick="map.host_click(evt, this.id)"
   onmousedown="map.host_mousedown(evt, this.id)"
@@ -41,9 +50,9 @@
   cx="25" 
   cy="25" 
   r="20" 
-  stroke="black" 
-  fill="gray" />
-<text x="5" y="60" font-size="9"><%= $host->{'name'} %></text>
+  class="<%= $host->{'state'} %>"
+/>
+<text x="0" y="60"><%= $host->{'name'} %></text>
 </svg>
 % }
 

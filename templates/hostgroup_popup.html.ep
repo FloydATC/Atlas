@@ -1,12 +1,11 @@
 % title 'Hostgroup popup';
 % layout 'popup';
-% my $id = $c->param('id');
-% my $hostgroup = atlas_hostgroup_get(dbh, $id);
-<%= $hostgroup->{'name'} %>"<BR>
+% my $hostgroup = $c->stash('hostgroup');
+<A href="/hostgroup/details?id=<%= $hostgroup->{'id'} %>"><%= $hostgroup->{'name'} %></A><BR>
 <HR>
-<A href="javascript:begin_drag_object('hostgroup<%= $id %>')">Move...</A><BR>
+<A href="javascript:begin_drag_object('hostgroup<%= $hostgroup->{'id'} %>')">Move...</A><BR>
 <HR>
-% foreach my $host (atlas_hostgroup_hosts(dbh, $id)) {
-<%== atlas_host_link(dbh, $host->{'id'}) %><BR>
+% foreach my $host (@{$c->stash('hosts')}) {
+<A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>
 % }
 

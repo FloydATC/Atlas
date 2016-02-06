@@ -1,13 +1,2 @@
-<!DOCTYPE html>
-<HTML>
-<HEAD>
-<TITLE><%= title %></TITLE>
-<LINK href="/popup.css" rel="stylesheet">
-</HEAD>
-<BODY>
-<DIV class="popup">
 <%= content %>
-</DIV>
-</BODY>
-</HTML>
 

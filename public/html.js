@@ -47,8 +47,14 @@ function svg_click(event, id) {
   if (dragged_object) {
     end_drag_object();
   }
-  if (event.button == 0 && scrolled == 0) {
+  if (event.button == 0 && scrolled == 0 && active_popups() > 0) {
     close_popups()
+    return;
+  }
+  if (event.button == 0 && scrolled == 0) {
+    var type = id.replace(/\d+/, '');
+    popup_create(event, id, type);
+    event.cancelBubble = true;
   }
   scrolled = 0;
 }

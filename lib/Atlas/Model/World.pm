@@ -1,32 +1,17 @@
 package Atlas::Model::World;
 
-sub sites {
-  my $class = shift;
-  my $c = shift;
-  my $dbh = shift;
 
-  #print "$class sites c=$c dbh=$dbh\n";
-  my $sth = $dbh->prepare("
+sub query_sites {
+  return "
     SELECT * 
     FROM sites
-    ORDER BY sites.id   
-  ");
-  $sth->execute();
-  my @sites = ();
-  while (my $site = $sth->fetchrow_hashref) {
-    push @sites, $site;
-  }
-  $sth->finish;
-  return @sites;
+    ORDER BY name, id   
+  ";
 }
 
-sub sitegroups {
-  my $class = shift;
-  my $c = shift;
-  my $dbh = shift;
 
-  #print "$class sitegroups c=$c dbh=$dbh\n";
-  my $sth = $dbh->prepare("
+sub query_sitegroups {
+  return "
     SELECT 
       sitegroups.id,
       sitegroups.name,
@@ -41,17 +26,8 @@ sub sitegroups {
     GROUP BY sitegroups.id
     HAVING members > 0
     ORDER BY sitegroups.id
-  ");
-  $sth->execute();
-  my @sitegroups = ();
-  while (my $sitegroup = $sth->fetchrow_hashref) {
-    push @sitegroups, $sitegroup;
-  }
-  #print "found ".scalar(@sitegroups)."\n";
-  return @sitegroups;
+  ";
 }
-
-
 
 return 1;
 

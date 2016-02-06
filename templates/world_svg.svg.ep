@@ -1,9 +1,13 @@
+% title 'worldmap';
 % layout 'plain';
 
 
 %# Get sitegroups
-% foreach my $sitegroup (atlas_world_sitegroups(dbh)) {
-<svg x="<%= $sitegroup->{'x'}-25 %>" y="<%= $sitegroup->{'y'}-25 %>"
+% foreach my $sitegroup (@{$c->stash('sitegroups')}) {
+%   my $x = $sitegroup->{'x'};
+%   my $y = $sitegroup->{'y'};
+
+<svg x="<%= $x-50 %>" y="<%= $y-50 %>"
   class="sitegroup"
   id="sitegroup<%= $sitegroup->{'id'} %>"
   onclick="map.sitegroup_click(evt, this.id)"
@@ -16,18 +20,22 @@
 <rect 
   x="0" 
   y="0" 
+  rx="20"
+  ry="20"
   width="<%= $sitegroup->{'width'}+100 %>"
   height="<%= $sitegroup->{'height'}+100 %>" 
-  stroke="blue" 
-  fill="yellow" />
-<text x="5" y="5" font-size="9"><%= $sitegroup->{'name'} %></text>
+/>
+<text x="10" y="20" font-size="9"><%= $sitegroup->{'name'} %></text>
 </svg>
 % }
 
 
 %# Get sites
-% foreach my $site (atlas_world_sites(dbh)) {
-<svg x="<%= $site->{'x'}-25 %>" y="<%= $site->{'y'}-25 %>"
+% foreach my $site (@{$c->stash('sites')}) {
+%   my $x = $site->{'x'};
+%   my $y = $site->{'y'};
+
+<svg x="<%= $x-25 %>" y="<%= $y-25 %>"
   class="site"
   id="site<%= $site->{'id'} %>"
   onclick="map.site_click(evt, this.id)"
@@ -43,7 +51,7 @@
   r="20" 
   stroke="black" 
   fill="gray" />
-<text x="5" y="60" font-size="9"><%= $site->{'name'} %></text>
+<text x="0" y="60" font-size="9"><%= $site->{'name'} %></text>
 </svg>
 % }
 

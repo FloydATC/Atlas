@@ -1,4 +1,12 @@
 
 BODY		{
 	background-color: lightgray;
+	font-family: sans-serif;
+	font-size: 9pt;
+}
+
+DIV.popup	{
+	background-color: #DFDFFF;
+	min-width: 200px;
+	border: 1px solid red;
 }

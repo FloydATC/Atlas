@@ -1,0 +1,12 @@
+% title 'Site menu';
+% layout 'popup';
+% my $site = $c->stash('site');
+<A href="/world/map">Back to world map</A><BR>
+<HR>
+Documentation<BR>
+<A href="/host/create?site=<%= $site->{'id'} %>">Add new host...</A><BR>
+% unless (@{$c->stash('hosts')}) {
+<A href="/site/delete?id=<%= $site->{'id'} %>">Delete site...</A><BR>
+% }
+
+

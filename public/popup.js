@@ -43,6 +43,12 @@ function close_popups() {
 }
 
 
+// Return number of active popups
+
+function active_popups() {
+  return popupArray.length;
+}
+
 
 // Popup object definition
 
