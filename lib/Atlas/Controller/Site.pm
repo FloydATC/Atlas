@@ -35,13 +35,24 @@ sub svg {
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
+      $db->query(Atlas::Model::Site->query_hostgroups, $id, $delay->begin);
       $db->query(Atlas::Model::Site->query_hosts, $id, $delay->begin);
     },
     sub {
-      my ($delay, $err, $results) = @_;
-      die $err if $err;
-      $self->stash( hosts => $results->hashes->to_array );
-
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hostgroups => $res->hashes->to_array );
+      };
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hosts => $res->hashes->to_array );
+      };
+      
       # Render response
       $self->render( template => 'site_svg', type => 'svg', format => 'svg' );
     }

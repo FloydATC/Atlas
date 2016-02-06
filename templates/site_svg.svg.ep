@@ -4,7 +4,7 @@
 
 
 %# Get hostgroups
-% foreach my $hostgroup (atlas_site_hostgroups(dbh, $id)) {
+% foreach my $hostgroup (@{$c->stash('hostgroups')}) {
 <svg x="<%= $hostgroup->{'x'}-25 %>" y="<%= $hostgroup->{'y'}-25 %>"
   id="hostgroup<%= $hostgroup->{'id'} %>"
   onclick="map.hostgroup_click(evt, this.id)"
