@@ -1,0 +1,15 @@
+
+{
+  database => {
+    host => 'localhost',
+    name => 'atlas',
+    user => 'atlas',
+    pass => 'atlas',
+  },
+ 
+  secrets => [
+    'CHANGE_ME'
+  ],
+};
+
+
