@@ -1,0 +1,6 @@
+% title 'Move sitegroup';
+% layout 'ajax';
+% my $id = $c->param('id');
+% my $relx = $c->param('relx');
+% my $rely = $c->param('rely');
+% atlas_sitegroup_move(dbh, $id, $relx, $rely);

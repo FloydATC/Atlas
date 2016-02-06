@@ -1,0 +1,7 @@
+% title 'World ';
+% layout 'plain';
+%= include 'menu'
+This is the world<BR>
+<object data="/world/svg" type="image/svg+xml" id="svg" width="640" height="480"></object>
+
+

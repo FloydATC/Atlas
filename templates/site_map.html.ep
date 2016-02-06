@@ -1,0 +1,8 @@
+% title 'Site ';
+% layout 'plain';
+% my $id = $c->param('id');
+% my $site = atlas_site_get(dbh, $id);
+%= include 'menu'
+This is site <%= $id %> "<%= $site->{'name'} %>"<BR>
+<object data="/site/svg?id=<%= $id %>" type="image/svg+xml" id="svg" width="640" height="480"></object>
+

@@ -1,0 +1,12 @@
+% title 'Host popup';
+% layout 'popup';
+% my $id = $c->param('id');
+% my $host = atlas_host_get(dbh, $id);
+<%= $host->{'name'} %><BR>
+<HR>
+<A href="javascript:begin_drag_object('host<%= $id %>')">Move...</A><BR>
+<HR>
+% foreach my $peer (atlas_host_peers(dbh, $id)) {
+<%== atlas_host_link(dbh, $peer->{'host_id'} ) %> via <%== atlas_commlink_link(dbh, $peer->{'commlink_id'} ) %><BR>
+% } 
+

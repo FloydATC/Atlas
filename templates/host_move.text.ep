@@ -1,0 +1,6 @@
+% title 'Move host';
+% layout 'ajax';
+% my $id = $c->param('id');
+% my $x = $c->param('x');
+% my $y = $c->param('y');
+% atlas_host_move(dbh, $id, $x, $y);

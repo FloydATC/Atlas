@@ -1,0 +1,50 @@
+% layout 'plain';
+
+
+%# Get sitegroups
+% foreach my $sitegroup (atlas_world_sitegroups(dbh)) {
+<svg x="<%= $sitegroup->{'x'}-25 %>" y="<%= $sitegroup->{'y'}-25 %>"
+  class="sitegroup"
+  id="sitegroup<%= $sitegroup->{'id'} %>"
+  onclick="map.sitegroup_click(evt, this.id)"
+  onmousedown="map.sitegroup_mousedown(evt, this.id)"
+  onmouseup="map.sitegroup_mouseup(evt, this.id)"
+  onmousemove="map.sitegroup_mousemove(evt, this.id)"
+  onmouseover="map.sitegroup_mouseover(evt, this.id)"
+  onmouseout="map.sitegroup_mouseout(evt, this.id)"
+>
+<rect 
+  x="0" 
+  y="0" 
+  width="<%= $sitegroup->{'width'}+100 %>"
+  height="<%= $sitegroup->{'height'}+100 %>" 
+  stroke="blue" 
+  fill="yellow" />
+<text x="5" y="5" font-size="9"><%= $sitegroup->{'name'} %></text>
+</svg>
+% }
+
+
+%# Get sites
+% foreach my $site (atlas_world_sites(dbh)) {
+<svg x="<%= $site->{'x'}-25 %>" y="<%= $site->{'y'}-25 %>"
+  class="site"
+  id="site<%= $site->{'id'} %>"
+  onclick="map.site_click(evt, this.id)"
+  onmousedown="map.site_mousedown(evt, this.id)"
+  onmouseup="map.site_mouseup(evt, this.id)"
+  onmousemove="map.site_mousemove(evt, this.id)"
+  onmouseover="map.site_mouseover(evt, this.id)"
+  onmouseout="map.site_mouseout(evt, this.id)"
+>
+<circle 
+  cx="25" 
+  cy="25" 
+  r="20" 
+  stroke="black" 
+  fill="gray" />
+<text x="5" y="60" font-size="9"><%= $site->{'name'} %></text>
+</svg>
+% }
+
+

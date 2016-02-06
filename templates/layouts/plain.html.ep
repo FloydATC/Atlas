@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<TITLE><%= title %></TITLE>
+<LINK href="/plain.css" rel="stylesheet">
+<SCRIPT type="text/javascript" src="/html.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/ajax.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="/popup.js"></SCRIPT>
+</HEAD>
+<BODY>
+<%= content %>
+</BODY>
+</HTML>
+
