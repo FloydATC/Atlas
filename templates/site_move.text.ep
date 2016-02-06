@@ -1,6 +1,0 @@
-% title 'Move site';
-% layout 'ajax';
-% my $id = $c->param('id');
-% my $x = $c->param('x');
-% my $y = $c->param('y');
-% atlas_site_move(dbh, $id, $x, $y);

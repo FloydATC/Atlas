@@ -1,6 +1,0 @@
-% title 'Move hostgroup';
-% layout 'ajax';
-% my $id = $c->param('id');
-% my $relx = $c->param('relx');
-% my $rely = $c->param('rely');
-% atlas_hostgroup_move(dbh, $id, $relx, $rely);
