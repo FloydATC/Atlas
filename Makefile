@@ -4,5 +4,8 @@ clean:
 
 commit:	clean
 	git add $(git ls-files -o --exclude-standard)
-	git commit
+	git commit -a
+
+push:
+	git push -u origin master
 		
