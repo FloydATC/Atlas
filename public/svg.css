@@ -58,7 +58,8 @@ svg.site text {
 	fill: black;
 }
 
-line {
+.commlink {
 	stroke: blue;
 	stroke-width: 2px;
+	fill: none;
 }

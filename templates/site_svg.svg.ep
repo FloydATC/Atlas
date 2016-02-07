@@ -4,27 +4,18 @@
 % title 'sitemap'.$id;
 
 
-%# Get lanlinks
-% foreach my $commlink (@{$c->stash('lanlinks')}) {
-<line class="commlink"  
-  x1="<%= $commlink->{'h1_x'} %>" y1="<%= $commlink->{'h1_y'} %>" 
-  x2="<%= $commlink->{'h2_x'} %>" y2="<%= $commlink->{'h2_y'} %>" 
-  id="commlink<%= $commlink->{'id'} %>" 
-  onclick="map.commlink_click(evt, this.id)" 
-/>
-% }
-
-
 %# Get wanlinks
 % foreach my $commlink (@{$c->stash('wanlinks')}) {
 %   my ($x1, $y1, $x2, $y2);
+%   # WAN links are shown as a line from the local host in the relative direction to the remote site
+%   # First figure out which host is local, then calculate the line
 %   if ($commlink->{'s1_id'} == $site->{'id'}) {
 %     # Host 1 is local
 %     $x1 = $commlink->{'h1_x'}; 
 %     $y1 = $commlink->{'h1_y'}; 
 %     my $dx = $commlink->{'s2_x'} - $commlink->{'s1_x'};
 %     my $dy = $commlink->{'s2_y'} - $commlink->{'s1_y'};
-%     my $len = sqrt($dx*$dx+$dy*$dy); $dx=$dx*$len*1000; $dy=$dy*$len*1000; # Normalize
+%     my $len = sqrt($dx*$dx+$dy*$dy); $dx=$dx*1000/$len; $dy=$dy*1000/$len; # Normalize
 %     $x2 = $x1 + $dx; 
 %     $y2 = $y1 + $dy; 
 %   } else {
@@ -37,11 +28,15 @@
 %     $x2 = $x1 + $dx; 
 %     $y2 = $y1 + $dy; 
 %   }
-<line class="commlink"  
-  x1="<%= $x1 %>" y1="<%= $y1 %>" 
-  x2="<%= $x2 %>" y2="<%= $y2 %>" 
+%   # Calculate a bezier control point 10 pixels left off the middle of points 1 and 2
+%   my $vx = $x2-$x1; my $vy = $y2-$y1;                                # Vector from point 1 to point 2
+%   ($vx, $vy) = ($vy, -$vx);                                          # Rotate 90 degrees counter-clockwise
+%   my $len = sqrt($vx*$vx+$vy*$vy); $vx=$vx*25/$len; $vy=$vy*10/$len; # Normalize length to 10
+%   my $qx = $vx + ($x1+$x2)/2; my $qy = $vy + ($y1+$y2)/2;            # Place vector between points 1 and 2
+<path d="M<%= $x1 %>,<%= $y1 %> Q<%= $qx %>,<%= $qy %> <%= $x2 %>,<%= $y2 %>"
+  class="commlink wan"
   id="commlink<%= $commlink->{'id'} %>" 
-  onclick="map.commlink_click(evt, this.id)" 
+  onclick="map.commlink_click(evt, this.id)"
 />
 % }
 
@@ -71,6 +66,25 @@
 />
 <text x="10" y="20" font-size="9"><%= $hostgroup->{'name'} %></text>
 </svg>
+% }
+
+
+%# Get lanlinks
+% foreach my $commlink (@{$c->stash('lanlinks')}) {
+%   my $x1 = $commlink->{'h1_x'};
+%   my $y1 = $commlink->{'h1_y'};
+%   my $x2 = $commlink->{'h2_x'};
+%   my $y2 = $commlink->{'h2_y'};
+%   # Calculate a bezier control point 10 pixels left off the middle of points 1 and 2
+%   my $vx = $x2-$x1; my $vy = $y2-$y1;                                # Vector from point 1 to point 2
+%   ($vx, $vy) = ($vy, -$vx);                                          # Rotate 90 degrees counter-clockwise
+%   my $len = sqrt($vx*$vx+$vy*$vy); $vx=$vx*25/$len; $vy=$vy*10/$len; # Normalize length to 10
+%   my $qx = $vx + ($x1+$x2)/2; my $qy = $vy + ($y1+$y2)/2;            # Place vector between points 1 and 2
+<path d="M<%= $x1 %>,<%= $y1 %> Q<%= $qx %>,<%= $qy %> <%= $x2 %>,<%= $y2 %>"
+  class="commlink lan"
+  id="commlink<%= $commlink->{'id'} %>" 
+  onclick="map.commlink_click(evt, this.id)"
+/>
 % }
 
 

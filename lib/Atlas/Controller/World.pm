@@ -28,11 +28,18 @@ sub svg {
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
+      $db->query(Atlas::Model::World->query_wanlinks, $delay->begin);
       $db->query(Atlas::Model::World->query_sitegroups, $delay->begin);
       $db->query(Atlas::Model::World->query_sites, $delay->begin);
     },
     sub {
       my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( wanlinks => $res->hashes->to_array );
+      };
       {
         my $err = shift;
         my $res = shift;

@@ -29,5 +29,26 @@ sub query_sitegroups {
   ";
 }
 
+sub query_wanlinks {
+  return "
+    SELECT
+      h1.id AS h1_id,
+      s1.id AS s1_id,
+      s1.x AS s1_x,
+      s1.y AS s1_y,
+      s2.id AS s2_id,
+      s2.x AS s2_x,
+      s2.y AS s2_y,
+      commlinks.*
+    FROM commlinks
+    LEFT JOIN hosts AS h1 ON (h1.id = commlinks.host1)
+    LEFT JOIN hosts AS h2 ON (h2.id = commlinks.host2)
+    LEFT JOIN sites AS s1 ON (s1.id = h1.site)
+    LEFT JOIN sites AS s2 ON (s2.id = h2.site)
+    WHERE h1.site != h2.site
+    ORDER BY commlinks.id
+  ";
+}
+
 return 1;
 

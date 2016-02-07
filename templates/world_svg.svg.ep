@@ -2,6 +2,25 @@
 % layout 'plain';
 
 
+%# Get WAN links
+% foreach my $commlink (@{$c->stash('wanlinks')}) {
+%   my $x1 = $commlink->{'s1_x'};
+%   my $y1 = $commlink->{'s1_y'};
+%   my $x2 = $commlink->{'s2_x'};
+%   my $y2 = $commlink->{'s2_y'};
+%   # Calculate a bezier control point 10 pixels left off the middle of points 1 and 2
+%   my $vx = $x2-$x1; my $vy = $y2-$y1;                                # Vector from point 1 to point 2
+%   ($vx, $vy) = ($vy, -$vx);                                          # Rotate 90 degrees counter-clockwise
+%   my $len = sqrt($vx*$vx+$vy*$vy); $vx=$vx*25/$len; $vy=$vy*10/$len; # Normalize length to 10
+%   my $qx = $vx + ($x1+$x2)/2; my $qy = $vy + ($y1+$y2)/2;            # Place vector between points 1 and 2
+<path d="M<%= $x1 %>,<%= $y1 %> Q<%= $qx %>,<%= $qy %> <%= $x2 %>,<%= $y2 %>"
+  class="commlink wan"
+  id="commlink<%= $commlink->{'id'} %>" 
+  onclick="map.commlink_click(evt, this.id)"
+/> 
+% }
+
+
 %# Get sitegroups
 % foreach my $sitegroup (@{$c->stash('sitegroups')}) {
 %   my $x = $sitegroup->{'x'};
