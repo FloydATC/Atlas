@@ -49,8 +49,12 @@ sub startup {
   $r->get('/sitegroup/popup_addmember')->to(controller => 'Sitegroup', action => 'popup_addmember');
   $r->get('/sitegroup/popup_removemember')->to(controller => 'Sitegroup', action => 'popup_removemember');
   $r->post('/host/move')->to(controller => 'Host', action => 'move');
-  $r->get('/host/popup')->to(controller => 'Host', action => 'popup');
-  $r->post('/hostgroup/move')->to(controller => 'Hostgroup', action => 'move');
+  $r->get('/host/popup')->to(controller => 'Host', action => 'popup'); # Clicked on host icon
+  $r->get('/host/popup_new')->to(controller => 'Host', action => 'popup_new'); # Create new host
+  $r->post('/hostgroup/move')->to(controller => 'Hostgroup', action => 'move'); # Ajax
+  $r->post('/host/insert')->to(controller => 'Host', action => 'insert'); # Ajax
+  $r->post('/host/addgroup')->to(controller => 'Host', action => 'addgroup'); # Ajax
+  $r->post('/host/removegroup')->to(controller => 'Host', action => 'removegroup'); # Ajax 
   $r->get('/hostgroup/popup')->to(controller => 'Hostgroup', action => 'popup');
     
 }

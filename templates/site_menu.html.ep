@@ -4,7 +4,7 @@
 <A href="/world/map">Back to world map</A><BR>
 <HR>
 Documentation<BR>
-<A href="/host/create?site=<%= $site->{'id'} %>">Add new host...</A><BR>
+<A href="#" onClick="javascript:create_popup('/host/popup_new?site_id=<%= $site->{'id'} %>&x='+event.clientX+'&y='+event.clientY, event.clientX, event.clientY); return false;">Create new host &gt;</A>
 % unless (@{$c->stash('hosts')}) {
 <A href="/site/delete?id=<%= $site->{'id'} %>">Delete site...</A><BR>
 % }

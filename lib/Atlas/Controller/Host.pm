@@ -38,6 +38,153 @@ sub move {
   )->wait;
 }
 
+
+sub insert {
+  my $self = shift;
+
+  # This method is used to insert a single new Host
+
+  # CAUTION! The Sitegroup logic has been copied but CAN NOT BE USED AS-IS because
+  # unlike Sitegroups, Hostgroups are NOT unique. We would therefore be creating 
+  # duplicate one-member host groups ad nauseum. I will meditate on this.
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $name = $self->param('name');
+  my $ip = $self->param('ip');
+  my $site = $self->param('site'); # Site ID
+  my $hostgroup = $self->param('hostgroup') || undef; # Note: Hostgroup name. Treat blank string as NULL
+  my $x = $self->param('x');
+  my $y = $self->param('y');
+  my $host_id = undef;
+  my $hostgroup_id = undef;
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Host->query_insert, $name, $ip, $site, $x, $y, $delay->begin);
+# FIXME
+#      $db->query(Atlas::Model::Hostgroup->query_insert, $site, $hostgroup, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $host_id = $res->last_insert_id;
+      };
+# FIXME
+#      {
+#        my $err = shift;
+#        my $res = shift;
+#        # Will fail if hostgroup already exists or name is NULL, this is harmless
+#      };
+#      $db->query(Atlas::Model::Hostgroup->query_find, $site, $hostgroup, $delay->begin);
+#    },
+#    sub {
+#      my $delay = shift;
+#      {
+#        my $err = shift;
+#        my $res = shift;
+#        # Will fail if hostgroup name is NULL, this is harmless
+#        $hostgroup_id = $res->hashes->first->{'id'} unless $err;
+#      };
+#      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $host_id, $delay->begin);
+#    },
+#    sub {
+#      my $delay = shift;
+#      {
+#        my $err = shift;
+#        my $res = shift;
+#        # Will fail if hostgroup name is NULL, this is harmless
+#      };
+
+      # Render response
+      $self->flash(message => 'Host created');
+      $self->redirect_to("/site/map?id=".$site);
+    }
+  )->wait;
+}
+
+
+sub addgroup_BROKEN { # See comments for insert()
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $id = $self->param('id'); # Host ID
+  my $hostgroup = $self->param('hostgroup'); # Note: Hostgroup Name!
+  my $hostgroup_id = undef;
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Hostgroup->query_insert, $hostgroup, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        # Will fail if hostgroup already exists or name is NULL, this is harmless
+      };
+      $db->query(Atlas::Model::Hostgroup->query_find, $hostgroup, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        # Will fail if hostgroup name is NULL, this is harmless
+        $hostgroup_id = $res->hashes->first->{'id'} unless $err;
+      };
+      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+      };
+
+      # Render response
+      $self->flash(message => 'Hostgroup member added');
+      $self->redirect_to("/site/map?id=".$site_id);
+    }
+  )->wait;
+}
+ 
+
+sub removegroup {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $id = $self->param('id'); # Host ID
+  my $hostgroup = $self->param('hostgroup'); # Hostgroup ID
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Hostgroup->query_removemember, $hostgroup, $id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+      };
+
+      # Render response
+      $self->flash(message => 'Hostgroup member removed');
+      $self->redirect_to("/site/map?id=".$site_id);
+    }
+  )->wait;
+}
+ 
+
 sub popup {
   my $self = shift;
 
@@ -72,5 +219,47 @@ sub popup {
 }
 
 
+sub popup_new {
+  my $self = shift;
+
+  # Popup dialog to create a new Host
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $hostgroup_id = $self->param('hostgroup_id');
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Site->query_get, $site_id, $delay->begin);
+      $db->query(Atlas::Model::Hostgroup->query_get, $hostgroup_id, $delay->begin);
+      $db->query(Atlas::Model::Site->query_hostgroups, $site_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( site => $res->hashes->first );
+      };
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hostgroup => $res->hashes->first );
+      };
+      { 
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hostgroups => $res->hashes->to_array );
+      };
+        
+      # Render response
+      $self->render( template => 'host_popup_new', type => 'html', format => 'html' );
+    }
+  )->wait;
+}
 
 1;

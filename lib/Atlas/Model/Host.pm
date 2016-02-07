@@ -35,5 +35,13 @@ sub query_peers {
 }
 
 
+sub query_insert {
+  return "
+    INSERT INTO hosts (name, ip, site, x, y)
+    VALUES (?, ?, ?, ?, ?)
+  ";
+}
+
+
 return 1;
 

@@ -43,6 +43,7 @@ sub query_hostgroups {
     LEFT JOIN hostgroupmembers ON (hostgroupmembers.host = hosts.id)
     LEFT JOIN hostgroups ON (hostgroups.id = hostgroupmembers.hostgroup)
     WHERE hosts.site = ?
+    AND hostgroups.id IS NOT NULL
     GROUP BY hostgroups.id
     HAVING members > 0
     ORDER BY hostgroups.id

@@ -1,9 +1,13 @@
 % title 'Hostgroup popup';
 % layout 'popup';
 % my $hostgroup = $c->stash('hostgroup');
+% my $site_id = $c->stash('hosts')->[0]->{'site'}; # Get site ID from the first host (no hosts -> no hostgroups -> no popup)
 <A href="/hostgroup/details?id=<%= $hostgroup->{'id'} %>"><%= $hostgroup->{'name'} %></A><BR>
 <HR>
 <A href="javascript:begin_drag_object('hostgroup<%= $hostgroup->{'id'} %>')">Move...</A><BR>
+<A href="#" onClick="javascript:create_popup('/host/popup_new?site_id=<%= $site_id %>&x='+event.clientX+'&y='+event.clientY+'&hostgroup_id='+<%= $hostgroup->{'id'} %>, event.clientX, event.clientY); return false;">Create new host &gt;</A><BR>
+<A href="#" onClick="javascript:create_popup('/hostgroup/popup_addmember?id='+<%= $hostgroup->{'id'} %>, event.clientX, event.clientY); return false;">Add member host &gt;</A><BR>
+<A href="#" onClick="javascript:create_popup('/hostgroup/popup_removemember?id='+<%= $hostgroup->{'id'} %>, event.clientX, event.clientY); return false;">Remove member host &gt;</A><BR>
 <HR>
 % foreach my $host (@{$c->stash('hosts')}) {
 <A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>

@@ -1,0 +1,22 @@
+% layout 'popup';
+% my $x = $c->param('x');
+% my $y = $c->param('y');
+% my $site = $c->stash('site');
+% my $hostgroup = $c->stash('hostgroup');
+
+Add new host<BR>
+<HR>
+<FORM method="POST" action="/host/insert">
+Host name <INPUT type="text" name="name" value=""><BR>
+IP address <INPUT type="text" name="ip" value=""><BR>
+Host group <INPUT type="text" name="hostgroup" value="<%= $hostgroup->{'name'} %>" list="hostgroups"><BR>
+<DATALIST id="hostgroups">
+% foreach my $hostgroup (@{$c->stash('hostgroups')}) {
+<OPTION><%= $hostgroup->{'name'} %></A>
+% }
+</DATALIST>
+<INPUT type="hidden" name="site" value="<%= $site->{'id'} %>"><BR>
+<INPUT type="hidden" name="x" value="<%= $x %>"><BR>
+<INPUT type="hidden" name="y" value="<%= $y %>"><BR>
+<INPUT type="button" value="Cancel" onclick="javascript:close_popups()"><INPUT type="submit" value="OK"><BR>
+</FORM>
