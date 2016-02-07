@@ -49,5 +49,50 @@ sub query_hostgroups {
   ";
 }
 
+sub query_lanlinks {
+  return "
+    SELECT
+      h1.id AS h1_id,
+      h1.x AS h1_x,
+      h1.y AS h1_y,
+      h2.id AS h2_id,
+      h2.x AS h2_x,
+      h2.y AS h2_y,
+      commlinks.*
+    FROM commlinks
+    LEFT JOIN hosts AS h1 ON (h1.id = commlinks.host1)
+    LEFT JOIN hosts AS h2 ON (h2.id = commlinks.host2)
+    WHERE (h1.site = ? AND h2.site = ?)
+    ORDER BY commlinks.id
+  ";
+}
+
+sub query_wanlinks {
+  return "
+    SELECT
+      h1.id AS h1_id,
+      h1.x AS h1_x,
+      h1.y AS h1_y,
+      h2.id AS h2_id,
+      h2.x AS h2_x,
+      h2.y AS h2_y,
+      s1.id AS s1_id,
+      s1.x AS s1_x,
+      s1.y AS s1_y,
+      s2.id AS s2_id,
+      s2.x AS s2_x,
+      s2.y AS s2_y,
+      commlinks.*
+    FROM commlinks
+    LEFT JOIN hosts AS h1 ON (h1.id = commlinks.host1)
+    LEFT JOIN hosts AS h2 ON (h2.id = commlinks.host2)
+    LEFT JOIN sites AS s1 ON (s1.id = h1.site)
+    LEFT JOIN sites AS s2 ON (s2.id = h2.site)
+    WHERE (h1.site = ? OR h2.site = ?)
+    AND h1.site != h2.site
+    ORDER BY commlinks.id
+  ";
+}
+
 return 1;
 

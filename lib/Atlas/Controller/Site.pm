@@ -76,6 +76,8 @@ sub svg {
       $db->query(Atlas::Model::Site->query_get, $id, $delay->begin);
       $db->query(Atlas::Model::Site->query_hostgroups, $id, $delay->begin);
       $db->query(Atlas::Model::Site->query_hosts, $id, $delay->begin);
+      $db->query(Atlas::Model::Site->query_lanlinks, $id, $id, $delay->begin);
+      $db->query(Atlas::Model::Site->query_wanlinks, $id, $id, $delay->begin);
     },
     sub {
       my $delay = shift;
@@ -96,6 +98,18 @@ sub svg {
         my $res = shift;
         die $err if $err;
         $self->stash( hosts => $res->hashes->to_array );
+      };
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( lanlinks => $res->hashes->to_array );
+      };
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( wanlinks => $res->hashes->to_array );
       };
       
       # Render response

@@ -3,6 +3,49 @@
 % my $site = $c->stash('site');
 % title 'sitemap'.$id;
 
+
+%# Get lanlinks
+% foreach my $commlink (@{$c->stash('lanlinks')}) {
+<line class="commlink"  
+  x1="<%= $commlink->{'h1_x'} %>" y1="<%= $commlink->{'h1_y'} %>" 
+  x2="<%= $commlink->{'h2_x'} %>" y2="<%= $commlink->{'h2_y'} %>" 
+  id="commlink<%= $commlink->{'id'} %>" 
+  onclick="map.commlink_click(evt, this.id)" 
+/>
+% }
+
+
+%# Get wanlinks
+% foreach my $commlink (@{$c->stash('wanlinks')}) {
+%   my ($x1, $y1, $x2, $y2);
+%   if ($commlink->{'s1_id'} == $site->{'id'}) {
+%     # Host 1 is local
+%     $x1 = $commlink->{'h1_x'}; 
+%     $y1 = $commlink->{'h1_y'}; 
+%     my $dx = $commlink->{'s2_x'} - $commlink->{'s1_x'};
+%     my $dy = $commlink->{'s2_y'} - $commlink->{'s1_y'};
+%     my $len = sqrt($dx*$dx+$dy*$dy); $dx=$dx*$len*1000; $dy=$dy*$len*1000; # Normalize
+%     $x2 = $x1 + $dx; 
+%     $y2 = $y1 + $dy; 
+%   } else {
+%     # Host 2 is local
+%     $x1 = $commlink->{'h2_x'}; 
+%     $y1 = $commlink->{'h2_y'}; 
+%     my $dx = $commlink->{'s1_x'} - $commlink->{'s2_x'};
+%     my $dy = $commlink->{'s1_y'} - $commlink->{'s2_y'};
+%     my $len = sqrt($dx*$dx+$dy*$dy); $dx=$dx*$len*1000; $dy=$dy*$len*1000; # Normalize
+%     $x2 = $x1 + $dx; 
+%     $y2 = $y1 + $dy; 
+%   }
+<line class="commlink"  
+  x1="<%= $x1 %>" y1="<%= $y1 %>" 
+  x2="<%= $x2 %>" y2="<%= $y2 %>" 
+  id="commlink<%= $commlink->{'id'} %>" 
+  onclick="map.commlink_click(evt, this.id)" 
+/>
+% }
+
+
 %# Get hostgroups
 % foreach my $hostgroup (@{$c->stash('hostgroups')}) {
 %   my $x = $hostgroup->{'x'};

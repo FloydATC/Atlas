@@ -30,6 +30,7 @@ svg circle {
 	fill: lightgray;
 	stroke: black;
 	stroke-width: 2px;
+	opacity: 0.5;
 }
 
 svg circle.alive {
@@ -57,4 +58,7 @@ svg.site text {
 	fill: black;
 }
 
-
+line {
+	stroke: blue;
+	stroke-width: 2px;
+}
