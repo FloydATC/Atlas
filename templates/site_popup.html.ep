@@ -5,6 +5,8 @@
 <HR>
 Documentation<BR>
 <A href="javascript:begin_drag_object('site<%= $site->{'id'} %>')">Move...</A><BR>
+<A href="#" onClick="javascript:create_popup('/site/popup_addgroup?id=<%= $site->{'id'} %>', event.clientX, event.clientY); return false;">Add group membership &gt;</A><BR>
+<A href="#" onClick="javascript:create_popup('/site/popup_removegroup?id=<%= $site->{'id'} %>', event.clientX, event.clientY); return false;">Remove group membership &gt;</A><BR>
 <HR>
 % foreach my $host (@{$c->stash('hosts')}) {
 <A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>

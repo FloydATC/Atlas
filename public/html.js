@@ -445,11 +445,14 @@ function commlink_planned(id, planned) {
 
 
 function popup_create(event, id, type) {
+//  alert('popup_create('+event+','+id+','+type+')');
+
   var object = event.target;
   var num_id = id.replace(/\D+/, '');
   var posx = svg().offsetLeft + event.clientX - 4;
   var posy = svg().offsetTop + event.clientY - 4;
-
+  
+//  alert('/'+type+'/popup?id='+num_id+', '+posx+', '+posy);
   create_popup('/'+type+'/popup?id='+num_id, posx, posy);
 }
 

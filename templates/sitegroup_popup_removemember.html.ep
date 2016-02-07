@@ -1,0 +1,15 @@
+
+% layout 'popup';
+% my $id = $c->param('id');
+
+Remove sitegroup member<BR>
+<HR>
+<FORM method="POST" action="/sitegroup/removemember">
+Site <SELECT name="site">
+% foreach my $site (@{$c->stash('sites')}) {
+<OPTION value="<%= $site->{'id'} %>"><%= $site->{'name'} %></A>
+% }
+</SELECT><BR>
+<INPUT type="hidden" name="id" value="<%= $id %>">
+<INPUT type="button" value="Cancel" onclick="javascript:close_popups()"><INPUT type="submit" value="OK"><BR>
+</FORM>

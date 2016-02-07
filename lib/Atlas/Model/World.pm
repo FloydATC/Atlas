@@ -23,6 +23,7 @@ sub query_sitegroups {
     FROM sites
     LEFT JOIN sitegroupmembers ON (sitegroupmembers.site = sites.id)
     LEFT JOIN sitegroups ON (sitegroups.id = sitegroupmembers.sitegroup)
+    WHERE sitegroups.id IS NOT NULL
     GROUP BY sitegroups.id
     HAVING members > 0
     ORDER BY sitegroups.id

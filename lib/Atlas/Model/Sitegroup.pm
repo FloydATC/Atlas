@@ -12,6 +12,17 @@ sub query_get {
 }
 
 
+sub query_find {
+  return "
+    SELECT * 
+    FROM sitegroups
+    WHERE name LIKE ?
+    ORDER BY id
+    LIMIT 1
+  ";
+}
+
+
 sub query_move {
   return "
     UPDATE sites    
@@ -34,6 +45,53 @@ sub query_sites {
   ";
 }
 
+
+sub query_insert {
+  return "
+    INSERT INTO sitegroups (name) 
+    VALUES (?)
+  ";
+}
+
+
+sub query_addmember {
+  return "
+    INSERT INTO sitegroupmembers (sitegroup, site)
+    VALUES (?, ?)
+  ";
+}
+
+sub query_removemember {
+  return "
+    DELETE FROM sitegroupmembers
+    WHERE sitegroup = ?
+    AND site = ?
+  ";
+}
+
+sub query_members {
+  return "
+    SELECT * FROM sites
+    WHERE id IN (
+      SELECT site 
+      FROM sitegroupmembers
+      WHERE sitegroup = ?
+    )
+    ORDER BY name, id
+  ";
+}
+
+sub query_nonmembers {
+  return "
+    SELECT * FROM sites
+    WHERE id NOT IN (
+      SELECT site 
+      FROM sitegroupmembers
+      WHERE sitegroup = ?
+    )
+    ORDER BY name, id
+  ";
+}
 
 return 1;
 

@@ -1,0 +1,16 @@
+
+% layout 'popup';
+% my $id = $c->param('id');
+
+Add new sitegroup membership<BR>
+<HR>
+<FORM method="POST" action="/site/addgroup">
+Site group <INPUT type="text" name="sitegroup" value="" list="sitegroups"><BR>
+<DATALIST id="sitegroups">
+% foreach my $sitegroup (@{$c->stash('sitegroups')}) {
+<OPTION><%= $sitegroup->{'name'} %></A>
+% }
+</DATALIST>
+<INPUT type="hidden" name="id" value="<%= $id %>">
+<INPUT type="button" value="Cancel" onclick="javascript:close_popups()"><INPUT type="submit" value="OK"><BR>
+</FORM>

@@ -32,12 +32,22 @@ sub startup {
   $r->get('/worldmap/popup')->to(controller => 'World', action => 'menu');
   $r->get('/site')->to(controller => 'Site', action => 'welcome');
   $r->get('/site/map')->to(controller => 'Site', action => 'map');
-  $r->post('/site/move')->to(controller => 'Site', action => 'move');
+  $r->post('/site/move')->to(controller => 'Site', action => 'move'); # Ajax
+  $r->post('/site/insert')->to(controller => 'Site', action => 'insert'); # Ajax
+  $r->post('/site/addgroup')->to(controller => 'Site', action => 'addgroup'); # Ajax
+  $r->post('/site/removegroup')->to(controller => 'Site', action => 'removegroup'); # Ajax 
   $r->get('/site/popup')->to(controller => 'Site', action => 'popup');
-  $r->get('/sitemap/popup')->to(controller => 'Site', action => 'menu');
+  $r->get('/sitemap/popup')->to(controller => 'Site', action => 'menu'); # Clicked on site icon
+  $r->get('/site/popup_new')->to(controller => 'Site', action => 'popup_new'); # Create new site
+  $r->get('/site/popup_addgroup')->to(controller => 'Site', action => 'popup_addgroup'); # Add sitegroup membership
+  $r->get('/site/popup_removegroup')->to(controller => 'Site', action => 'popup_removegroup'); # Remove sitegroup membership
   $r->get('/site/svg')->to(controller => 'Site', action => 'svg');
   $r->post('/sitegroup/move')->to(controller => 'Sitegroup', action => 'move');
+  $r->post('/sitegroup/addmember')->to(controller => 'Sitegroup', action => 'addmember');
+  $r->post('/sitegroup/removemember')->to(controller => 'Sitegroup', action => 'removemember');
   $r->get('/sitegroup/popup')->to(controller => 'Sitegroup', action => 'popup');
+  $r->get('/sitegroup/popup_addmember')->to(controller => 'Sitegroup', action => 'popup_addmember');
+  $r->get('/sitegroup/popup_removemember')->to(controller => 'Sitegroup', action => 'popup_removemember');
   $r->post('/host/move')->to(controller => 'Host', action => 'move');
   $r->get('/host/popup')->to(controller => 'Host', action => 'popup');
   $r->post('/hostgroup/move')->to(controller => 'Hostgroup', action => 'move');

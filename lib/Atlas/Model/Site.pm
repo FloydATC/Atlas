@@ -94,5 +94,43 @@ sub query_wanlinks {
   ";
 }
 
+sub query_insert {
+  return "
+    INSERT INTO sites (name, x, y) 
+    VALUES (?, ?, ?)
+  ";
+}
+
+
+sub query_memberof {
+  # Select all Sitegroups this Site is member of
+  return "
+    SELECT sitegroups.*
+    FROM sitegroups
+    WHERE sitegroups.id IN (
+      SELECT sitegroup 
+      FROM sitegroupmembers
+      WHERE site = ? 
+    )
+    ORDER BY sitegroups.name, sitegroups.id
+  ";
+}
+
+
+sub query_notmemberof {
+  # Select all Sitegroups this Site is NOT member of
+  return "
+    SELECT sitegroups.*
+    FROM sitegroups
+    WHERE sitegroups.id NOT IN (
+      SELECT sitegroup 
+      FROM sitegroupmembers
+      WHERE site = ? 
+    )
+    ORDER BY sitegroups.name, sitegroups.id
+  ";
+}
+
+
 return 1;
 
