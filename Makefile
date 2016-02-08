@@ -2,7 +2,10 @@
 clean:
 	find . -name '*~' -type f -delete
 
-commit:	clean
+test:
+	script/atlas test
+
+commit:	clean test
 	git add $(git ls-files -o --exclude-standard)
 	git commit -a
 
