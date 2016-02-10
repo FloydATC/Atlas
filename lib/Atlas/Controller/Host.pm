@@ -317,5 +317,42 @@ sub popup_removegroup {
 }
 
 
+sub popup_connecthost {
+  my $self = shift;
+
+  # Popup dialog to create a commlink from one host to another
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $host_id = $self->param('host_id');
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Host->query_get, $host_id, $delay->begin);
+      $db->query(Atlas::Model::Host->query_nonpeers, $host_id, $host_id, $host_id, $host_id, $host_id, $delay->begin); # Note: 5 x id (!!)
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( host => $res->hashes->first );
+      };
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hosts => $res->hashes->to_array );
+      };
+
+      # Render response
+      $self->render( template => 'host_popup_connecthost', type => 'html', format => 'html' );
+    }
+  )->wait;
+}
+
+
 
 1;

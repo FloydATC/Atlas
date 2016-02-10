@@ -11,6 +11,7 @@ sub query_get {
   ";
 }
 
+
 sub query_move {
   return "
     UPDATE hosts    
@@ -18,6 +19,7 @@ sub query_move {
     WHERE id = ?
   ";  
 }
+
 
 sub query_peers {
   return "
@@ -31,6 +33,26 @@ sub query_peers {
     AND (commlinks.host1 = ? OR commlinks.host2 = ?)
     AND hosts.id != ?
     ORDER BY hosts.name, hosts.id
+  ";
+}
+
+
+sub query_nonpeers {
+  return "
+    SELECT * 
+    FROM hosts
+    WHERE id != ? 
+    AND id NOT IN (
+      SELECT commlinks.host1
+      FROM commlinks
+      WHERE (commlinks.host1 = ? OR commlinks.host2 = ?)
+    )
+    AND id NOT IN (
+      SELECT commlinks.host2
+      FROM commlinks
+      WHERE (commlinks.host1 = ? OR commlinks.host2 = ?)
+    )
+    ORDER BY name, id
   ";
 }
 

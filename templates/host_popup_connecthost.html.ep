@@ -1,0 +1,27 @@
+
+% layout 'popup';
+% my $site_id = $c->param('site_id');
+% my $from_host = $c->stash('host');
+Connect host <%= $from_host->{'name'} %> to<BR>
+<HR>
+<FORM method="POST" action="/commlink/insert">
+Host <SELECT name="host2">
+% foreach my $host (@{$c->stash('hosts')}) {
+<OPTION value="<%= $host->{'id'} %>"><%= $host->{'name'} %></A>
+% }
+</SELECT><BR>
+Type <SELECT name="type">
+<OPTION>Copper</OPTION>
+<OPTION>SM fiber</OPTION>
+<OPTION>MM fiber</OPTION>
+<OPTION>Licensed radio</OPTION>
+<OPTION>Unlicensed radio</OPTION>
+<OPTION>DSL</OPTION>
+<OPTION>GPRS</OPTION>
+</SELECT><BR>
+Link speed (Mbps)<INPUT type="text" name="speed" value=""><BR>
+<INPUT type="hidden" name="site_id" value="<%= $site_id %>">
+<INPUT type="hidden" name="host1" value="<%= $from_host->{'id'} %>">
+<INPUT type="button" value="Cancel" onclick="javascript:close_popups()"><INPUT type="submit" value="OK"><BR>
+</FORM>
+
