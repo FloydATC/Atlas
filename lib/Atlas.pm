@@ -34,7 +34,7 @@ sub startup {
   $r->get('/site/map')->to(controller => 'Site', action => 'map');
   $r->post('/site/move')->to(controller => 'Site', action => 'move'); # Ajax
   $r->post('/site/insert')->to(controller => 'Site', action => 'insert'); # Ajax
-  $r->post('/site/addgroup')->to(controller => 'Site', action => 'addgroup'); # Ajax
+  $r->post('/site/addgroup')->to(controller => 'Site', action => 'addgroup_byname'); # Ajax
   $r->post('/site/removegroup')->to(controller => 'Site', action => 'removegroup'); # Ajax 
   $r->get('/site/popup')->to(controller => 'Site', action => 'popup');
   $r->get('/sitemap/popup')->to(controller => 'Site', action => 'menu'); # Clicked on site icon
@@ -53,7 +53,7 @@ sub startup {
   $r->get('/host/popup_new')->to(controller => 'Host', action => 'popup_new'); # Create new host
   $r->post('/hostgroup/move')->to(controller => 'Hostgroup', action => 'move'); # Ajax
   $r->post('/host/insert')->to(controller => 'Host', action => 'insert'); # Ajax
-  $r->post('/host/addgroup')->to(controller => 'Host', action => 'addgroup'); # Ajax
+  $r->post('/host/addgroup')->to(controller => 'Host', action => 'addgroup_byname'); # Ajax
   $r->post('/host/removegroup')->to(controller => 'Host', action => 'removegroup'); # Ajax 
   $r->get('/hostgroup/popup')->to(controller => 'Hostgroup', action => 'popup');
     

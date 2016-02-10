@@ -128,7 +128,7 @@ sub insert {
 }
 
 
-sub addgroup {
+sub addgroup_byname {
   my $self = shift;
 
   $self->render_later;

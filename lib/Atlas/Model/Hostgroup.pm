@@ -31,6 +31,39 @@ sub query_move {
   ";
 }
 
+sub query_insert {
+  return "
+    INSERT INTO hostgroups (site, name)
+    VALUES (?, ?)
+  ";
+}
+
+
+sub query_find {
+  return "
+    SELECT * FROM hostgroups
+    WHERE site = ? AND name LIKE ?
+    ORDER BY name, id
+    LIMIT 1
+  ";
+}
+
+
+sub query_addmember {
+  return "
+    INSERT INTO hostgroupmembers (hostgroup, host)
+    VALUES (?, ?)
+  ";
+}
+
+
+sub query_deletemember {
+  return "
+    DELETE FROM hostgroupmembers
+    WHERE hostgroup = ?
+    AND host = ?
+  ";
+}
 
 
 return 1;

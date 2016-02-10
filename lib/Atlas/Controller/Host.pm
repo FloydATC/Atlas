@@ -44,10 +44,6 @@ sub insert {
 
   # This method is used to insert a single new Host
 
-  # CAUTION! The Sitegroup logic has been copied but CAN NOT BE USED AS-IS because
-  # unlike Sitegroups, Hostgroups are NOT unique. We would therefore be creating 
-  # duplicate one-member host groups ad nauseum. I will meditate on this.
-
   $self->render_later;
   my $db = $self->mysql->db;
   my $name = $self->param('name');
@@ -62,8 +58,7 @@ sub insert {
     sub {
       my $delay = shift;
       $db->query(Atlas::Model::Host->query_insert, $name, $ip, $site, $x, $y, $delay->begin);
-# FIXME
-#      $db->query(Atlas::Model::Hostgroup->query_insert, $site, $hostgroup, $delay->begin);
+      $db->query(Atlas::Model::Hostgroup->query_insert, $site, $hostgroup, $delay->begin);
     },
     sub {
       my $delay = shift;
@@ -73,62 +68,12 @@ sub insert {
         die $err if $err;
         $host_id = $res->last_insert_id;
       };
-# FIXME
-#      {
-#        my $err = shift;
-#        my $res = shift;
-#        # Will fail if hostgroup already exists or name is NULL, this is harmless
-#      };
-#      $db->query(Atlas::Model::Hostgroup->query_find, $site, $hostgroup, $delay->begin);
-#    },
-#    sub {
-#      my $delay = shift;
-#      {
-#        my $err = shift;
-#        my $res = shift;
-#        # Will fail if hostgroup name is NULL, this is harmless
-#        $hostgroup_id = $res->hashes->first->{'id'} unless $err;
-#      };
-#      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $host_id, $delay->begin);
-#    },
-#    sub {
-#      my $delay = shift;
-#      {
-#        my $err = shift;
-#        my $res = shift;
-#        # Will fail if hostgroup name is NULL, this is harmless
-#      };
-
-      # Render response
-      $self->flash(message => 'Host created');
-      $self->redirect_to("/site/map?id=".$site);
-    }
-  )->wait;
-}
-
-
-sub addgroup_BROKEN { # See comments for insert()
-  my $self = shift;
-
-  $self->render_later;
-  my $db = $self->mysql->db;
-  my $site_id = $self->param('site_id');
-  my $id = $self->param('id'); # Host ID
-  my $hostgroup = $self->param('hostgroup'); # Note: Hostgroup Name!
-  my $hostgroup_id = undef;
-  Mojo::IOLoop->delay(
-    sub {
-      my $delay = shift;
-      $db->query(Atlas::Model::Hostgroup->query_insert, $hostgroup, $delay->begin);
-    },
-    sub {
-      my $delay = shift;
       {
         my $err = shift;
         my $res = shift;
         # Will fail if hostgroup already exists or name is NULL, this is harmless
       };
-      $db->query(Atlas::Model::Hostgroup->query_find, $hostgroup, $delay->begin);
+      $db->query(Atlas::Model::Hostgroup->query_find, $site, $hostgroup, $delay->begin);
     },
     sub {
       my $delay = shift;
@@ -138,7 +83,56 @@ sub addgroup_BROKEN { # See comments for insert()
         # Will fail if hostgroup name is NULL, this is harmless
         $hostgroup_id = $res->hashes->first->{'id'} unless $err;
       };
-      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $id, $delay->begin);
+      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $host_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        # Will fail if hostgroup name is NULL, this is harmless
+      };
+
+      # Render response
+      $self->flash(message => 'Host created');
+      $self->redirect_to("/site/map?id=".$site);
+    }
+  )->wait;
+}
+
+
+sub addgroup_byname {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $host_id = $self->param('id');
+  my $hostgroup_name = $self->param('hostgroup');
+  my $hostgroup_id = undef;
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Hostgroup->query_insert, $site_id, $hostgroup_name, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        # Will fail if hostgroup already exists or name is NULL, this is harmless
+      };
+      $db->query(Atlas::Model::Hostgroup->query_find, $hostgroup_name, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        # Will fail if hostgroup name is NULL, this is harmless
+        $hostgroup_id = $res->hashes->first->{'id'} unless $err;
+      };
+      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $host_id, $delay->begin);
     },
     sub {
       my $delay = shift;
