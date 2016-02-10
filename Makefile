@@ -11,4 +11,7 @@ commit:	clean test
 
 push:
 	git push -u origin master
-		
+
+tables:
+	script/init-database
+			

@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+use Config::FromHash;
+use Data::Dumper;
+
+my $fname = 'atlas.conf';
+die "Configuration file '$fname' not found\n" unless -e $fname;
+
+my $parser = Config::FromHash->new(filename => 'atlas.conf');
+my $config = $parser->data; 
+
+my $DBNAME = $config->{'database'}->{'name'};
+my $DBHOST = $config->{'database'}->{'host'};
+my $DBUSER = $config->{'database'}->{'user'};
+my $DBPASS = $config->{'database'}->{'pass'};
+
+die "Invalid configuration, please check '$fname'\n" unless $DBHOST && $DBUSER;
+
+print "Using config settings from 'atlas.conf'\n";
+print "Initializing database '$DBNAME' on host '$DBHOST' as user '$DBUSER' with password '$DBPASS'\n";
+print "Don't worry, any existing data should remain untouched\n\n";
+my $bin = '/usr/bin/mysql';
+my $options = "--show-warnings --verbose";
+system("$bin $options -f $DBNAME -h $DBHOST -u$DBUSER -p$DBPASS < sql/tables.sql")  == 0 
+  or die "$bin returned error code $?, please examine the output above, check '$fname' and try again\n";
+
+print "\nOK, $bin returned status 0, your Atlas database should be ready\n";
+exit;
