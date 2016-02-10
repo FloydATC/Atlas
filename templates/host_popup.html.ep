@@ -3,7 +3,10 @@
 % my $host = $c->stash('host');
 <A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>
 <HR>
+Documentation<BR>
 <A href="javascript:begin_drag_object('host<%= $host->{'id'} %>')">Move...</A><BR>
+<A href="#" onClick="javascript:create_popup('/host/popup_addgroup?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Add group membership &gt;</A><BR>
+<A href="#" onClick="javascript:create_popup('/host/popup_removegroup?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Remove group membership &gt;</A><BR>
 <HR>
 % foreach my $peer (@{$c->stash('peers')}) {
 <A href="/host/map?id=<%= $peer->{'hosts_id'} %>"><%= $peer->{'hosts_name'} %></A> 

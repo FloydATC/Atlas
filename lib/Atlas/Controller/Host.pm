@@ -107,7 +107,7 @@ sub addgroup_byname {
   $self->render_later;
   my $db = $self->mysql->db;
   my $site_id = $self->param('site_id');
-  my $host_id = $self->param('id');
+  my $host_id = $self->param('host_id');
   my $hostgroup_name = $self->param('hostgroup');
   my $hostgroup_id = undef;
   Mojo::IOLoop->delay(
@@ -122,7 +122,7 @@ sub addgroup_byname {
         my $res = shift;
         # Will fail if hostgroup already exists or name is NULL, this is harmless
       };
-      $db->query(Atlas::Model::Hostgroup->query_find, $hostgroup_name, $delay->begin);
+      $db->query(Atlas::Model::Hostgroup->query_find, $site_id, $hostgroup_name, $delay->begin);
     },
     sub {
       my $delay = shift;
@@ -156,12 +156,12 @@ sub removegroup {
   $self->render_later;
   my $db = $self->mysql->db;
   my $site_id = $self->param('site_id');
-  my $id = $self->param('id'); # Host ID
-  my $hostgroup = $self->param('hostgroup'); # Hostgroup ID
+  my $host_id = $self->param('host_id'); # Host ID
+  my $hostgroup_name = $self->param('hostgroup'); # Hostgroup ID
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
-      $db->query(Atlas::Model::Hostgroup->query_removemember, $hostgroup, $id, $delay->begin);
+      $db->query(Atlas::Model::Hostgroup->query_removemember, $hostgroup_name, $host_id, $delay->begin);
     },
     sub {
       my $delay = shift;
@@ -255,5 +255,67 @@ sub popup_new {
     }
   )->wait;
 }
+
+
+sub popup_addgroup {
+  my $self = shift;
+
+  # Popup dialog to add group membership
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $host_id = $self->param('host_id');
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Host->query_notmemberof, $site_id, $host_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hostgroups => $res->hashes->to_array );
+      };
+
+      # Render response
+      $self->render( template => 'host_popup_addgroup', type => 'html', format => 'html' );
+    }
+  )->wait;
+}
+
+
+sub popup_removegroup {
+  my $self = shift;
+
+  # Popup dialog to delete group membership
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  my $host_id = $self->param('host_id');
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Host->query_memberof, $site_id, $host_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hostgroups => $res->hashes->to_array );
+      };
+
+      # Render response
+      $self->render( template => 'host_popup_removegroup', type => 'html', format => 'html' );
+    }
+  )->wait;
+}
+
+
 
 1;

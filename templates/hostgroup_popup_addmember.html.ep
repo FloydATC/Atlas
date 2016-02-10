@@ -1,0 +1,17 @@
+
+% layout 'popup';
+% my $site_id = $c->param('site_id');
+% my $hostgroup_id = $c->param('hostgroup_id');
+
+Add hostgroup member<BR>
+<HR>
+<FORM method="POST" action="/hostgroup/addmember">
+Host <SELECT name="host_id">
+% foreach my $host (@{$c->stash('hosts')}) {
+<OPTION value="<%= $host->{'id'} %>"><%= $host->{'name'} %></A>
+% }
+</SELECT><BR>
+<INPUT type="hidden" name="site_id" value="<%= $site_id %>">
+<INPUT type="hidden" name="hostgroup_id" value="<%= $hostgroup_id %>">
+<INPUT type="button" value="Cancel" onclick="javascript:close_popups()"><INPUT type="submit" value="OK"><BR>
+</FORM>

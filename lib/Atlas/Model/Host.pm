@@ -43,5 +43,33 @@ sub query_insert {
 }
 
 
+sub query_memberof {
+  return "
+    SELECT hostgroups.*
+    FROM hostgroups
+    WHERE hostgroups.site = ?
+    AND hostgroups.id IN (
+      SELECT hostgroupmembers.hostgroup
+      FROM hostgroupmembers
+      WHERE hostgroupmembers.host = ?
+    )
+  ";
+}
+
+
+sub query_notmemberof {
+  return "
+    SELECT hostgroups.*
+    FROM hostgroups
+    WHERE hostgroups.site = ?
+    AND hostgroups.id NOT IN (
+      SELECT hostgroupmembers.hostgroup
+      FROM hostgroupmembers
+      WHERE hostgroupmembers.host = ?
+    )
+  ";
+}
+
+
 return 1;
 

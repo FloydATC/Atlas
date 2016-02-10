@@ -51,10 +51,16 @@ sub startup {
   $r->post('/host/move')->to(controller => 'Host', action => 'move');
   $r->get('/host/popup')->to(controller => 'Host', action => 'popup'); # Clicked on host icon
   $r->get('/host/popup_new')->to(controller => 'Host', action => 'popup_new'); # Create new host
-  $r->post('/hostgroup/move')->to(controller => 'Hostgroup', action => 'move'); # Ajax
   $r->post('/host/insert')->to(controller => 'Host', action => 'insert'); # Ajax
   $r->post('/host/addgroup')->to(controller => 'Host', action => 'addgroup_byname'); # Ajax
   $r->post('/host/removegroup')->to(controller => 'Host', action => 'removegroup'); # Ajax 
+  $r->get('/host/popup_addgroup')->to(controller => 'Host', action => 'popup_addgroup'); # Add hostgroup membership
+  $r->get('/host/popup_removegroup')->to(controller => 'Host', action => 'popup_removegroup'); # Remove hostgroup membership
+  $r->post('/hostgroup/move')->to(controller => 'Hostgroup', action => 'move'); # Ajax
+  $r->post('/hostgroup/addmember')->to(controller => 'Hostgroup', action => 'addmember'); # Ajax
+  $r->post('/hostgroup/removemember')->to(controller => 'Hostgroup', action => 'removemember'); # Ajax
+  $r->get('/hostgroup/popup_addmember')->to(controller => 'Hostgroup', action => 'popup_addmember');
+  $r->get('/hostgroup/popup_removemember')->to(controller => 'Hostgroup', action => 'popup_removemember');
   $r->get('/hostgroup/popup')->to(controller => 'Hostgroup', action => 'popup');
     
 }

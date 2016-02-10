@@ -57,7 +57,7 @@ sub query_addmember {
 }
 
 
-sub query_deletemember {
+sub query_removemember {
   return "
     DELETE FROM hostgroupmembers
     WHERE hostgroup = ?
@@ -65,6 +65,31 @@ sub query_deletemember {
   ";
 }
 
+
+sub query_members {
+  return "
+    SELECT hosts.* 
+    FROM hosts
+    WHERE id IN (
+      SELECT hostgroupmembers.host
+      FROM hostgroupmembers
+      WHERE hostgroupmembers.hostgroup = ?
+    )
+  ";
+}
+
+sub query_nonmembers {
+  return "
+    SELECT hosts.* 
+    FROM hosts
+    WHERE hosts.site = ?
+    AND id NOT IN (
+      SELECT hostgroupmembers.host
+      FROM hostgroupmembers
+      WHERE hostgroupmembers.hostgroup = ?
+    )
+  ";
+}
 
 return 1;
 
