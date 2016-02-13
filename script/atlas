@@ -2,11 +2,144 @@
 
 use strict;
 use warnings;
+use threads;
+use threads::shared;
+use Digest::MD5 qw( md5_hex );
+use Net::Pcap;
+use LWP::UserAgent;
+use Data::Dumper;
+use Socket; # For inet_ntoa()
+use Config::FromHash;
+use Data::Dumper;
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../lib" }
 
-# Start command line interface for application
+my $fname = 'atlas.conf';
+die "Configuration file '$fname' not found\n" unless -e $fname;
+
+print localtime(time)." Initializing $0\n";
+
+my $parser = Config::FromHash->new(filename => 'atlas.conf');
+my $config = $parser->data;
+unless (defined $config->{'port'} && $config->{'port'} > 0 && $config->{'port'} < 65536) {
+  die "Setting 'port' is invalid or missing in $fname\n";
+}
+
+
+# Start background threads
+# These will do as little work as possible, the heavy lifting should be done by the web server itself
+my %seen :shared = ();
+my $pcap_status :shared = undef;
+my $beam_thread = threads->new(\&beam); 
+my $pcap_thread = threads->new(\&pcap); 
+my $seen_thread = threads->new(\&seen);
+$beam_thread->detach();
+$pcap_thread->detach();
+$seen_thread->detach();
+
+# Wait for pcap thread to initialize
+my $countdown = 10;
+while ($countdown > 0 && !defined $pcap_status) {
+  sleep 1 unless defined $pcap_status;
+  $countdown-- unless defined $pcap_status;
+}
+lock($pcap_status);
+if ($countdown == 0) {
+  die "Timeout while waiting for PCAP thread to initialize, shutting down\n";
+}
+unless ($pcap_status eq 'initialized') {
+  die "PCAP thread failed to initialize:\n\t$pcap_status\n";
+}
+
+# Start web server application
 require Mojolicious::Commands;
-Mojolicious::Commands->start_app('Atlas');
+Mojolicious::Commands->start_app('Atlas', '-l http://*:'.$config->{'port'});
+
+# Maintain a single long-running request active at all times
+# The purpose is to make sure all hosts are continously pinged, scanned etc.
+sub beam {
+  sleep(10); # Allow the web server some time to spin up
+  while (1) {
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    
+    my $url = 'http://127.0.0.1:'.$config->{'port'}.'/loopback/beam';
+    my $response = $ua->post($url);
+    unless ($response->is_success) {
+      print "BEAM FAILED: ".$response->status_line."\n";
+    }
+    
+    sleep(1);
+  }
+}
+
+# Keep a seen thread running, periodically reporting pcap traffic to the web server
+sub seen {
+  sleep(10); # Allow the web server some time to spin up
+  while (1) {
+    if (%seen) {
+      # Transfer contents of %seen to %lock and then empty %seen  
+      my %copy = ();
+      {
+        lock(%seen);
+        %copy = %seen;
+        %seen = ();
+      };
+
+      # Submit the contents of %copy to the web server
+      my $ua = LWP::UserAgent->new;
+      $ua->timeout(10);
+      my $url = 'http://127.0.0.1:'.$config->{'port'}.'/loopback/seen';
+      my $response = $ua->post($url, \%copy);
+      unless ($response->is_success) {
+        print "SEEN thread error: '".$url."' returned '".$response->status_line."'\n";
+      }
+    }
+    
+    sleep(10);
+  }
+}
+
+# Keep a packet capture thread running, sniffing for activity indicating alive hosts
+sub pcap {
+  while (1) {
+    my $err;
+
+    my $device = 'any';
+    my $pcap = Net::Pcap::pcap_open_live($device, 56, 1, 0, \$err);
+    if ($err) {
+      $pcap_status = "Net::Pcap::pcap_open_live() failed:\n\t$err";
+      die;
+    }
+    $pcap_status = 'initialized';
+    
+    pcap_loop($pcap, -1, \&pcap_callback, '');    
+    print "PCAP pcap_loop() terminated\n";
+
+    sleep(1);
+  }
+}
+
+# Called once per packet
+# If the packet type is IPv4, put the SOURCE ip and a timestamp in %seen
+sub pcap_callback {
+  my ($user_data, $header, $packet) = @_;
+  
+  # Decode L2 packet
+  my ($dst_mac, $src_mac, $src, $type) = unpack("H12H12n1n1", $packet);
+  if ($type == 0x0800) { # 0x0800 = IP
+    my $ip_packet = substr($packet, 16);
+    # Decode IP packet
+    my ($version, $qos, $length, $id, $offset, $ttl, $proto, $crc) = unpack("C1B8n1n1n1C1C1n1", $ip_packet);
+    $version = $version >> 4;
+    if ($version == 0x04) { # 0x04 = v4
+      my $source = inet_ntoa(substr($ip_packet, 12, 4));
+      my $destination = inet_ntoa(substr($ip_packet, 16, 4));
+      $seen{$source} = $header->{'tv_sec'};
+    }
+  }
+
+}
+
 

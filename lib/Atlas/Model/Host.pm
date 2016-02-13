@@ -79,6 +79,16 @@ sub query_memberof {
 }
 
 
+sub query_update_dead {
+  return "
+    UPDATE hosts
+    SET up=0, since=NOW()
+    WHERE up=1 
+    AND TIMESTAMPDIFF(SECOND, checked, NOW()) > 30
+    AND TIMESTAMPDIFF(SECOND, alive, checked) > 30 
+  ";
+}
+
 sub query_notmemberof {
   return "
     SELECT hostgroups.*
@@ -93,5 +103,32 @@ sub query_notmemberof {
 }
 
 
+sub query_seen_ip {
+  return "
+    CALL seen_ip(?, FROM_UNIXTIME(?))
+  ";
+}
+
+
+sub query_update_checked {
+  return "
+    UPDATE hosts
+    SET checked=NOW()
+    WHERE id = ?
+  ";
+}
+
+
+sub query_need_check {
+  # Find hosts that have not been checked in the last 2 minutes
+  return "
+    SELECT *
+    FROM hosts
+    WHERE ip IS NOT NULL
+    AND (checked IS NULL OR TIMESTAMPDIFF(MINUTE, checked, NOW()) >= 2)
+  ";
+}   
+ 
+                       
 return 1;
 

@@ -8,7 +8,7 @@ use Atlas::Model::Sitegroup;
 use Atlas::Model::Host;
 use Atlas::Model::Hostgroup;
 use Atlas::Model::Commlink;
-
+use Data::Dumper;
 
 sub startup {
   my $self = shift;
@@ -64,6 +64,9 @@ sub startup {
   $r->get('/hostgroup/popup_removemember')->to(controller => 'Hostgroup', action => 'popup_removemember');
   $r->get('/hostgroup/popup')->to(controller => 'Hostgroup', action => 'popup');
   $r->post('/commlink/insert')->to(controller => 'Commlink', action => 'insert'); # Ajax
+  $r->post('/loopback/seen')->to(controller => 'Host', action => 'seen'); # SEEN thread
+  $r->post('/loopback/beam')->to(controller => 'World', action => 'beam'); # BEAM thread
+  $r->post('/host/send_echo_request')->to(controller => 'Host', action => 'send_echo_request'); # Initiated by BEAM
     
 }
 

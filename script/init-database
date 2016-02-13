@@ -21,8 +21,11 @@ print "Initializing database '$DBNAME' on host '$DBHOST' as user '$DBUSER' with 
 print "Don't worry, any existing data should remain untouched\n\n";
 my $bin = '/usr/bin/mysql';
 my $options = "--show-warnings --verbose";
-system("$bin $options -f $DBNAME -h $DBHOST -u$DBUSER -p$DBPASS < sql/tables.sql")  == 0 
-  or die "$bin returned error code $?, please examine the output above, check '$fname' and try again\n";
+my @files = <sql/*.sql>;
+foreach my $file (sort @files) {
+  system("$bin $options -f $DBNAME -h $DBHOST -u$DBUSER -p$DBPASS < $file")  == 0 
+    or die "$bin returned error code $?, please examine the output above, check '$fname' and try again\n";
+}
 
 print "\nOK, $bin returned status 0, your Atlas database should be ready\n";
 exit;

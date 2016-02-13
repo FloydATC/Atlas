@@ -1,6 +1,7 @@
 package Atlas::Controller::Host;
 use Mojo::Base 'Mojolicious::Controller';
 
+use Socket;
 use Data::Dumper;
 
 # Action
@@ -354,5 +355,88 @@ sub popup_connecthost {
 }
 
 
+# Loopback request from SEEN thread 
+sub seen {
+  my $self = shift;
+
+  my %seen = @{$self->req->params}; # ip => timestamp, ip => timestamp, ...
+
+  if (%seen) {
+    $self->render_later;
+    my $db = $self->mysql->db;
+
+    Mojo::IOLoop->delay(
+      sub {
+        my $delay = shift;
+        # One query per ip/timestamp pair
+        foreach my $host_ip (keys %seen) {
+          $db->query(Atlas::Model::Host->query_seen_ip, $host_ip, $seen{$host_ip}, $delay->begin);
+        }
+      },
+      sub {
+        my $delay = shift;
+        # One err/res pair per ip/timestamp pair
+        foreach my $host_ip (keys %seen) {
+          my $err = shift;
+          my $res = shift;
+          die $err if $err;
+        };
+
+        # Render response
+        $self->render( text => 'OK' );
+      }
+    )->wait;
+  } else {
+    # Render response
+    $self->render( text => 'No updates', status => 500 );
+  }
+
+}
+
+
+sub send_echo_request {
+  my $self = shift;
+  my $host_id = $self->param('host_id');
+  my $host = {};
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Host->query_get, $host_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die "send_echo_request()/query_get FAILED\n\t".$err if $err;
+        $host = $res->hashes->first;
+      };
+
+      # Send out an ICMP echo request
+      # The pcap thread is already listening for ICMP echo replies (and anything else)
+      socket(my $sock, PF_INET, SOCK_RAW, getprotobyname('icmp')) || die "Error: $!";
+      my $payload = pack("C2n3", 8, 0, 0xf7fd, 0x0001, 0x0001); # type=8(echo), subtype=0(n/a), crc=0xf7fd, id=1, seq=1
+      send($sock, $payload, 0, sockaddr_in(0, inet_aton($host->{'ip'}))) || die "Error: $!";
+
+      $db->query(Atlas::Model::Host->query_update_checked, $host->{'id'}, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die "send_echo_request()/query_update_checked FAILED\n\t".$err if $err;
+      };
+
+      # Render response
+      $self->render( text => 'OK' );
+    }
+  )->wait;
+
+}
 
 1;
+
