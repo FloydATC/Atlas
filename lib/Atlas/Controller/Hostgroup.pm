@@ -19,6 +19,7 @@ sub move {
   my $relx = $self->param('relx');
   my $rely = $self->param('rely');
   my $id = $self->param('id');
+  unless ($id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
@@ -81,6 +82,7 @@ sub addmember {
   my $site_id = $self->param('site_id');
   my $host_id = $self->param('host_id');
   my $hostgroup_id = $self->param('hostgroup_id');
+  unless ($site_id && $host_id && $hostgroup_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
@@ -110,6 +112,7 @@ sub removemember {
   my $site_id = $self->param('site_id');
   my $host_id = $self->param('host_id');
   my $hostgroup_id = $self->param('hostgroup_id');
+  unless ($site_id && $host_id && $hostgroup_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;

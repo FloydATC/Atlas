@@ -20,6 +20,7 @@ sub move {
   my $relx = $self->param('relx');
   my $rely = $self->param('rely');
   my $id = $self->param('id');
+  unless ($id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
@@ -48,6 +49,7 @@ sub insert {
   $self->render_later;
   my $db = $self->mysql->db;
   my $name = $self->param('name');
+  unless ($name) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   my $ip = $self->param('ip');
   my $site = $self->param('site'); # Site ID
   my $hostgroup_name = $self->param('hostgroup') || undef; # Note: Treat blank string as NULL
@@ -130,6 +132,7 @@ sub addgroup_byname {
   my $site_id = $self->param('site_id');
   my $host_id = $self->param('host_id');
   my $hostgroup_name = $self->param('hostgroup');
+  unless ($site_id && $host_id && $hostgroup_name) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   my $hostgroup_id = undef;
   Mojo::IOLoop->delay(
     sub {
@@ -180,6 +183,7 @@ sub removegroup {
   my $site_id = $self->param('site_id');
   my $host_id = $self->param('host_id'); # Host ID
   my $hostgroup_name = $self->param('hostgroup'); # Hostgroup ID
+  unless ($site_id && $host_id && $hostgroup_name) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;

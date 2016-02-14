@@ -54,7 +54,7 @@ unless ($pcap_status eq 'initialized') {
 
 # Start web server application
 require Mojolicious::Commands;
-Mojolicious::Commands->start_app('Atlas', '-l http://*:'.$config->{'port'});
+Mojolicious::Commands->start_app('Atlas', @ARGV);
 
 # Maintain a single long-running request active at all times
 # The purpose is to make sure all hosts are continously pinged, scanned etc.

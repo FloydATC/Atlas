@@ -45,6 +45,7 @@ sub move {
   my $relx = $self->param('relx');
   my $rely = $self->param('rely');
   my $id = $self->param('id');
+  unless ($id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
@@ -75,7 +76,8 @@ sub insert {
   
   $self->render_later;
   my $db = $self->mysql->db;
-  my $name = $self->param('name');
+  my $site_name = $self->param('name'); # Required
+  unless ($site_name) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   my $sitegroup_name = $self->param('sitegroup') || undef; # Treat blank string as NULL
   my $x = $self->param('x');
   my $y = $self->param('y');
@@ -84,7 +86,7 @@ sub insert {
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
-      $db->query(Atlas::Model::Site->query_insert, $name, $x, $y, $delay->begin);
+      $db->query(Atlas::Model::Site->query_insert, $site_name, $x, $y, $delay->begin);
       if ($sitegroup_name) {
         $db->query(Atlas::Model::Sitegroup->query_insert, $sitegroup_name, $delay->begin);
       }
@@ -157,6 +159,7 @@ sub addgroup_byname {
   my $db = $self->mysql->db;
   my $id = $self->param('id');
   my $sitegroup = $self->param('sitegroup'); # Note: Sitegroup Name!
+  unless ($id && $sitegroup) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   my $sitegroup_id = undef;
   Mojo::IOLoop->delay(
     sub {
@@ -206,6 +209,7 @@ sub removegroup {
   my $db = $self->mysql->db;
   my $id = $self->param('id');
   my $sitegroup = $self->param('sitegroup'); # Sitegroup ID
+  unless ($id && $sitegroup) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;

@@ -21,8 +21,9 @@ sub insert {
   my $db = $self->mysql->db;
   my $host1 = $self->param('host1');
   my $host2 = $self->param('host2');
-  my $name = $self->param('type').' '.$self->param('speed');
+  my $name = ($self->param('type') || 'generic_link').' '.($self->param('speed') || 'unknown_speed');
   my $site_id = $self->param('site_id'); # Site ID
+  unless ($host1 && $host2) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
