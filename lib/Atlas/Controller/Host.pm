@@ -50,7 +50,7 @@ sub insert {
   my $name = $self->param('name');
   my $ip = $self->param('ip');
   my $site = $self->param('site'); # Site ID
-  my $hostgroup = $self->param('hostgroup') || undef; # Note: Hostgroup name. Treat blank string as NULL
+  my $hostgroup_name = $self->param('hostgroup') || undef; # Note: Treat blank string as NULL
   my $x = $self->param('x');
   my $y = $self->param('y');
   my $host_id = undef;
@@ -59,36 +59,55 @@ sub insert {
     sub {
       my $delay = shift;
       $db->query(Atlas::Model::Host->query_insert, $name, $ip, $site, $x, $y, $delay->begin);
-      $db->query(Atlas::Model::Hostgroup->query_insert, $site, $hostgroup, $delay->begin);
+      if ($hostgroup_name) {
+        $db->query(Atlas::Model::Hostgroup->query_insert, $site, $hostgroup_name, $delay->begin);
+      }
     },
     sub {
       my $delay = shift;
       {
         my $err = shift;
         my $res = shift;
+        if ($err && $err =~ /Duplicate entry/) {
+          # User error - Render response and exit early
+          $self->flash(message => 'Host already exists');
+          $self->res->code(303); 
+          $self->redirect_to("/site/map?id=".$site);
+          return;
+        }
         die $err if $err;
         $host_id = $res->last_insert_id;
       };
-      {
+      if ($hostgroup_name) {
         my $err = shift;
         my $res = shift;
-        # Will fail if hostgroup already exists or name is NULL, this is harmless
-      };
-      $db->query(Atlas::Model::Hostgroup->query_find, $site, $hostgroup, $delay->begin);
+        if ($err) {
+          unless ($err =~ /Duplicate entry/) {
+            die $err;
+          }
+        }
+        $db->query(Atlas::Model::Hostgroup->query_find, $site, $hostgroup_name, $delay->begin);
+      } else {
+        $delay->pass;
+      }
     },
     sub {
       my $delay = shift;
-      {
+      if ($hostgroup_name) {
         my $err = shift;
         my $res = shift;
-        # Will fail if hostgroup name is NULL, this is harmless
-        $hostgroup_id = $res->hashes->first->{'id'} unless $err;
+        die $err if $err;
+        $hostgroup_id = $res->hashes->first->{'id'};
       };
-      $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $host_id, $delay->begin);
+      if ($hostgroup_id) {
+        $db->query(Atlas::Model::Hostgroup->query_addmember, $hostgroup_id, $host_id, $delay->begin);
+      } else {
+        $delay->pass;
+      }
     },
     sub {
       my $delay = shift;
-      {
+      if ($hostgroup_id) {
         my $err = shift;
         my $res = shift;
         # Will fail if hostgroup name is NULL, this is harmless
@@ -96,6 +115,7 @@ sub insert {
 
       # Render response
       $self->flash(message => 'Host created');
+      $self->res->code(303); 
       $self->redirect_to("/site/map?id=".$site);
     }
   )->wait;
@@ -145,6 +165,7 @@ sub addgroup_byname {
 
       # Render response
       $self->flash(message => 'Hostgroup member added');
+      $self->res->code(303);
       $self->redirect_to("/site/map?id=".$site_id);
     }
   )->wait;
@@ -174,6 +195,7 @@ sub removegroup {
 
       # Render response
       $self->flash(message => 'Hostgroup member removed');
+      $self->res->code(303);
       $self->redirect_to("/site/map?id=".$site_id);
     }
   )->wait;

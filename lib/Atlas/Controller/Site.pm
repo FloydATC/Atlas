@@ -76,7 +76,7 @@ sub insert {
   $self->render_later;
   my $db = $self->mysql->db;
   my $name = $self->param('name');
-  my $sitegroup = $self->param('sitegroup') || undef; # Treat blank string as NULL
+  my $sitegroup_name = $self->param('sitegroup') || undef; # Treat blank string as NULL
   my $x = $self->param('x');
   my $y = $self->param('y');
   my $site_id = undef;
@@ -85,43 +85,65 @@ sub insert {
     sub {
       my $delay = shift;
       $db->query(Atlas::Model::Site->query_insert, $name, $x, $y, $delay->begin);
-      $db->query(Atlas::Model::Sitegroup->query_insert, $sitegroup, $delay->begin);
+      if ($sitegroup_name) {
+        $db->query(Atlas::Model::Sitegroup->query_insert, $sitegroup_name, $delay->begin);
+      }
     },
     sub {
       my $delay = shift;
       {
+        my $err = shift;
+        my $res = shift;
+        if ($err && $err =~ /Duplicate entry/) {
+          # User error - Render response and exit early
+          $self->flash(message => 'Site already exists');
+          $self->res->code(303); 
+          $self->redirect_to("/world/map");
+          return;
+        } 
+        die $err if $err;
+
+        $site_id = $res->last_insert_id;
+      };
+      if ($sitegroup_name) {
+        my $err = shift;
+        my $res = shift;
+        if ($err) {
+          unless ($err =~ /Duplicate entry/) {
+            die $err;
+          } 
+        }
+        $db->query(Atlas::Model::Sitegroup->query_find, $sitegroup_name, $delay->begin);      
+      } else {
+        $delay->pass; # Skip to next block immediately
+      }
+    },
+    sub {
+      my $delay = shift;
+      if ($sitegroup_name) {
         my $err = shift;
         my $res = shift;
         die $err if $err;
-        $site_id = $res->last_insert_id;
+        $sitegroup_id = $res->hashes->first->{'id'};
       };
-      {
-        my $err = shift;
-        my $res = shift;
-        # Will fail if sitegroup already exists or name is NULL, this is harmless
-      };
-      $db->query(Atlas::Model::Sitegroup->query_find, $sitegroup, $delay->begin);      
+      
+      if ($sitegroup_id) {
+        $db->query(Atlas::Model::Sitegroup->query_addmember, $sitegroup_id, $site_id, $delay->begin);      
+      } else {
+        $delay->pass; # Skip to next block immediately
+      }
     },
     sub {
       my $delay = shift;
-      {
+      if ($sitegroup_id) {
         my $err = shift;
         my $res = shift;
-        # Will fail if sitegroup name is NULL, this is harmless
-        $sitegroup_id = $res->hashes->first->{'id'} unless $err;
-      };
-      $db->query(Atlas::Model::Sitegroup->query_addmember, $sitegroup_id, $site_id, $delay->begin);      
-    },
-    sub {
-      my $delay = shift;
-      {
-        my $err = shift;
-        my $res = shift;
-        # Will fail if sitegroup name is NULL, this is harmless
+        die $err if $err;
       };
 
       # Render response
       $self->flash(message => 'Site created');
+      $self->res->code(303);
       $self->redirect_to("/world/map");
     }
   )->wait;
@@ -170,6 +192,7 @@ sub addgroup_byname {
 
       # Render response
       $self->flash(message => 'Sitegroup member added');
+      $self->res->code(303);
       $self->redirect_to("/world/map");
     }
   )->wait;
@@ -198,6 +221,7 @@ sub removegroup {
 
       # Render response
       $self->flash(message => 'Sitegroup member removed');
+      $self->res->code(303);
       $self->redirect_to("/world/map");
     }
   )->wait;
