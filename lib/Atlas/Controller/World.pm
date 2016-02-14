@@ -139,11 +139,15 @@ sub beam {
       # Request that one ICMP echo request message be sent to each host      
       foreach my $host (@hosts) {      
         #print "Checking ".$host->{'ip'}." (last checked ".($host->{'checked'} || 'NEVER').")\n";
-        $self->write_chunk("Checking ".$host->{'ip'}." (last checked ".($host->{'checked'} || 'NEVER').")\n");
-        my $url = $self->url_for('/host/send_echo_request');
-        my $head = { Accept=>'*/*' };
-        my $form = { 'host_id'=>$host->{'id'} };
-        $ua->post($url, $head, form => $form, $delay->begin);
+        # Use ~50ms interval so we don't completely flood the network
+        Mojo::IOLoop->timer(0.050 => sub {
+          $self->write_chunk("Checking ".$host->{'ip'}." (last checked ".($host->{'checked'} || 'NEVER').")\n");
+          my $url = $self->url_for('/host/send_echo_request');
+          my $head = { Accept=>'*/*' };
+          my $form = { 'host_id'=>$host->{'id'} };
+          $ua->post($url, $head, form => $form, $delay->begin);
+        
+        });
       }
       
     },
