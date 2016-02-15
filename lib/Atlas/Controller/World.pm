@@ -102,20 +102,7 @@ sub beam {
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
-
-      # Hosts that have been checked but did not reply -> mark as DEAD
-      $db->query(Atlas::Model::Host->query_update_dead, $delay->begin);
-    },   
-    sub {
-      my $delay = shift;
       
-      {
-        my $err = shift; 
-        my $res = shift; 
-        print "update_dead: $err\n" if $err;
-        die $err if $err;
-      };
-
       # Get a list of hosts that need to be pinged
       $db->query(Atlas::Model::Host->query_need_check, $delay->begin);
     },   

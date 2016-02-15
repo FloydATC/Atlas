@@ -3,7 +3,9 @@ package Atlas::Model::World;
 
 sub query_sites {
   return "
-    SELECT * 
+    SELECT 
+      *,
+      STATE(up) AS state 
     FROM sites
     ORDER BY name, id   
   ";
@@ -15,6 +17,7 @@ sub query_sitegroups {
     SELECT 
       sitegroups.id,
       sitegroups.name,
+      STATE(sitegroups.up) AS state,
       MIN(sites.x) AS x,
       MIN(sites.y) AS y,
       MAX(sites.x)-MIN(sites.x) AS width,
@@ -48,6 +51,12 @@ sub query_wanlinks {
     LEFT JOIN sites AS s2 ON (s2.id = h2.site)
     WHERE h1.site != h2.site
     ORDER BY commlinks.id
+  ";
+}
+
+sub query_recalc_states {
+  return "
+    CALL recalc_states()
   ";
 }
 

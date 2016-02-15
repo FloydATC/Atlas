@@ -82,15 +82,15 @@ sub query_memberof {
 }
 
 
-sub query_update_dead {
-  return "
-    UPDATE hosts
-    SET up=0, since=NOW()
-    WHERE up=1 
-    AND TIMESTAMPDIFF(SECOND, checked, NOW()) > 30
-    AND TIMESTAMPDIFF(SECOND, alive, checked) > 30 
-  ";
-}
+#sub query_update_dead {
+#  return "
+#    UPDATE hosts
+#    SET up=0, since=NOW()
+#    WHERE (up != 0 OR up IS NULL) 
+#    AND TIMESTAMPDIFF(SECOND, checked, NOW()) > 30
+#    AND (TIMESTAMPDIFF(SECOND, alive, checked) > 30 OR alive IS NULL) 
+#  ";
+#}
 
 sub query_notmemberof {
   return "

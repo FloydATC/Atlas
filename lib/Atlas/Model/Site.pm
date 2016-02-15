@@ -12,7 +12,9 @@ sub query_move {
 
 sub query_get {
   return "
-    SELECT *
+    SELECT 
+      *,
+      STATE(up) AS state
     FROM sites
     WHERE id = ?
   ";
@@ -36,6 +38,7 @@ sub query_hostgroups {
     SELECT 
       hostgroups.id,
       hostgroups.name,
+      STATE(hostgroups.up) AS state,
       MIN(hosts.x) AS x,
       MIN(hosts.y) AS y,
       MAX(hosts.x)-MIN(hosts.x) AS width,

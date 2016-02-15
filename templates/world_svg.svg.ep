@@ -41,6 +41,7 @@
   y="0" 
   rx="20"
   ry="20"
+  class="<%= $sitegroup->{'state'} %>"
   width="<%= $sitegroup->{'width'}+100 %>"
   height="<%= $sitegroup->{'height'}+100 %>" 
 />
@@ -68,6 +69,7 @@
   cx="25" 
   cy="25" 
   r="20" 
+  class="<%= $site->{'state'} %>"
   stroke="black" 
   fill="gray" />
 <text x="0" y="60" font-size="9"><%= $site->{'name'} %></text>

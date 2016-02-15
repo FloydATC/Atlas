@@ -27,6 +27,8 @@ CREATE TABLE `commlinks` (
   `name` varchar(64) DEFAULT '(unnamed)',
   `host1` int(11) NOT NULL,
   `host2` int(11) NOT NULL,
+  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
+  `up` decimal(5,4) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -74,6 +76,8 @@ CREATE TABLE `hostgroups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
   `site` int(11) NOT NULL,
+  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
+  `up` decimal(5,4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_site` (`name`,`site`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -102,7 +106,7 @@ CREATE TABLE `hosts` (
   `site` int(11) NOT NULL,
   `x` int(11) DEFAULT '0',
   `y` int(11) DEFAULT '0',
-  `up` decimal(5,4) NOT NULL DEFAULT '0.0000',
+  `up` decimal(5,4) DEFAULT NULL,
   `since` datetime DEFAULT NULL,
   `checked` datetime DEFAULT NULL,
   `alive` datetime DEFAULT NULL,
@@ -120,6 +124,29 @@ LOCK TABLES `hosts` WRITE;
 /*!40000 ALTER TABLE `hosts` DISABLE KEYS */;
 /*!40000 ALTER TABLE `hosts` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER after_host_update AFTER UPDATE ON hosts
+  FOR EACH ROW
+  BEGIN
+    IF (STATE(OLD.up) != STATE(NEW.up)) 
+    THEN
+      INSERT INTO statechanges (object_type, object_id, from_state, to_state) 
+      VALUES ('host', NEW.id, STATE(OLD.up), STATE(NEW.up));
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `sitegroupmembers`
@@ -154,6 +181,8 @@ DROP TABLE IF EXISTS `sitegroups`;
 CREATE TABLE `sitegroups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
+  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
+  `up` decimal(5,4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -180,6 +209,8 @@ CREATE TABLE `sites` (
   `name` varchar(64) NOT NULL,
   `x` int(11) DEFAULT '0',
   `y` int(11) DEFAULT '0',
+  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
+  `up` decimal(5,4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -193,6 +224,33 @@ LOCK TABLES `sites` WRITE;
 /*!40000 ALTER TABLE `sites` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sites` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `statechanges`
+--
+
+DROP TABLE IF EXISTS `statechanges`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `statechanges` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `changed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `object_type` varchar(32) NOT NULL,
+  `object_id` int(11) NOT NULL,
+  `from_state` varchar(32) NOT NULL,
+  `to_state` varchar(32) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `statechanges`
+--
+
+LOCK TABLES `statechanges` WRITE;
+/*!40000 ALTER TABLE `statechanges` DISABLE KEYS */;
+/*!40000 ALTER TABLE `statechanges` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -203,4 +261,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-02-13 12:13:30
+-- Dump completed on 2016-02-15 13:38:16

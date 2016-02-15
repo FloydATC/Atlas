@@ -1,16 +1,32 @@
 
+svg rect.canvas {
+	fill: white;
+}
+
 svg.sitegroup rect {
-	fill: #FFDFDF;
+	fill: #EEEEEE;
 	stroke: black;
-	stroke-width: 1px;
+	stroke-width: 2px;
 	opacity: 0.5;
 }
 
 svg.hostgroup rect {
-	fill: #DFFFDF;
+	fill: #EEEEEE;
 	stroke: black;
 	stroke-width: 2px;
 	opacity: 0.5;
+}
+
+svg rect.alive {
+	fill: #DDFFDD;
+}
+
+svg rect.warning {
+	fill: #FFFFAA;
+}
+
+svg rect.dead {
+	fill: #FFBBBB;	
 }
 
 svg.sitegroup text {
@@ -30,7 +46,7 @@ svg circle {
 	fill: lightgray;
 	stroke: black;
 	stroke-width: 2px;
-	opacity: 0.5;
+	opacity: 0.75;
 }
 
 svg circle.alive {
@@ -38,11 +54,11 @@ svg circle.alive {
 }
 
 svg circle.warning {
-	fill: yellow;
+	fill: orange;
 }
 
 svg circle.dead {
-	fill: pink;
+	fill: #FF2020;
 }
 
 

@@ -61,6 +61,7 @@
   y="0"
   rx="20"
   ry="20" 
+  class="<%= $hostgroup->{'state'} %>"
   width="<%= $hostgroup->{'width'}+100 %>"
   height="<%= $hostgroup->{'height'}+100 %>" 
 />

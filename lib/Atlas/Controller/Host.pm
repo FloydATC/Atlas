@@ -57,6 +57,8 @@ sub insert {
   my $y = $self->param('y');
   my $host_id = undef;
   my $hostgroup_id = undef;
+  
+  if ($ip eq '' || $ip eq '0.0.0.0') { $ip = undef; }
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
@@ -403,6 +405,16 @@ sub seen {
         my $delay = shift;
         # One err/res pair per ip/timestamp pair
         foreach my $host_ip (keys %seen) {
+          my $err = shift;
+          my $res = shift;
+          die $err if $err;
+        };
+
+        $db->query(Atlas::Model::World->query_recalc_states, $delay->begin);
+      },
+      sub {
+        my $delay = shift;
+        {
           my $err = shift;
           my $res = shift;
           die $err if $err;

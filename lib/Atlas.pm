@@ -24,6 +24,7 @@ sub startup {
     my $DBUSER = $config->{'database'}->{'user'};
     my $DBPASS = $config->{'database'}->{'pass'};  
     state $handle = Mojo::mysql->new("mysql://$DBUSER:$DBPASS\@$DBHOST/$DBNAME");
+    $handle->max_connections(25);
   });
 
   my $r = $self->routes;

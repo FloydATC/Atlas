@@ -14,7 +14,7 @@
       onmousemove="map.svg_mousemove(evt, this.id);"
       id="<%= $title %>"
       width="640" height="480">
-<rect x="0" y="0" width="640" height="480" fill="#F0F0D0" />
+<rect x="0" y="0" width="640" height="480" class="canvas" />
 <script type="text/ecmascript" xlink:href="/svg.js" />
 <%= content %>
 </svg>

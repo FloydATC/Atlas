@@ -13,7 +13,7 @@ DELIMITER //
 
 CREATE PROCEDURE seen_ip(host_ip VARCHAR(16), seen_datetime DATETIME)
 BEGIN
-  UPDATE hosts SET up=1, since=seen_datetime WHERE ip=host_ip AND up=0;
+  UPDATE hosts SET up=1, since=seen_datetime WHERE ip=host_ip AND (up != 1 OR up IS NULL);
   UPDATE hosts SET alive=seen_datetime, checked=seen_datetime WHERE ip=host_ip;
 END //
 
