@@ -21,6 +21,16 @@ sub query_get {
 }
 
 
+sub query_dimensions {
+  return "
+    SELECT
+      MAX(x)+100 AS width,
+      MAX(y)+100 AS height
+    FROM hosts
+    WHERE site = ?
+  ";
+}
+
 sub query_hosts {
   return "
     SELECT 

@@ -11,6 +11,14 @@ sub query_sites {
   ";
 }
 
+sub query_canvas_size {
+  return "
+    SELECT
+      MAX(x)+100 AS width,
+      MAX(y)+100 AS height
+    FROM sites
+  ";
+}
 
 sub query_sitegroups {
   return "

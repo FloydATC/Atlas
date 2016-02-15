@@ -14,8 +14,32 @@ sub welcome {
 sub map {
   my $self = shift;
 
-  # Render response
-  $self->render( template => 'world_map' );
+  $self->render_later;
+  my $db = $self->mysql->db;
+
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::World->query_canvas_size, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        my $canvas = $res->hashes->first;
+        if ($canvas->{'width'} < 640) { $canvas->{'width'} = 640; }
+        if ($canvas->{'height'} < 480) { $canvas->{'height'} = 480; }
+        $self->stash( width => $canvas->{'width'} );
+        $self->stash( height => $canvas->{'height'} );
+      };
+      
+      # Render response
+      $self->render( template => 'world_map' );
+    }
+  );
+
 }
 
 
@@ -25,6 +49,7 @@ sub svg {
   $self->render_later;
   my $db = $self->mysql->db;
   my $id = $self->param('id');
+
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;

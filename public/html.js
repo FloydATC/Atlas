@@ -500,14 +500,24 @@ function end_drag_object() {
     var id = dragged_object.id.replace(/\D+/, '');
     var params = "id="+id+"&x="+x+"&y="+y+"&relx="+relx+"&rely="+rely;
     http.open("post", "/"+type+"/move");
-    http.onreadystatechange = window.location.reload(); // When request is complete
+    http.onload = function() { 
+      window.location.reload();
+    };
     http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     http.send(params);
-    dragged_object = null;
+    pause(3000);
+    // http.onload should kick in. If not, reload after timeout.
+    window.location.reload(); 
   }
 }
 
-
+function pause(ms)
+{
+  var date = new Date();
+  var curDate = null;
+  do { curDate = new Date(); }
+  while(curDate-date < millis);
+}
 
 function logout() {
   var http = new XMLHttpRequest();

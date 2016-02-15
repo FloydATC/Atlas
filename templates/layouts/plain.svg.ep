@@ -1,3 +1,5 @@
+% my $width = $c->param('width');
+% my $height = $c->param('height');
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN"
       "http://www.w3.org/TR/2001/REC-SVG-20050904/DTD/svg10.dtd">
@@ -14,7 +16,7 @@
       onmousemove="map.svg_mousemove(evt, this.id);"
       id="<%= $title %>"
       width="640" height="480">
-<rect x="0" y="0" width="640" height="480" class="canvas" />
+<rect x="0" y="0" width="<%= $width%>" height="<%= $height %>" class="canvas" />
 <script type="text/ecmascript" xlink:href="/svg.js" />
 <%= content %>
 </svg>

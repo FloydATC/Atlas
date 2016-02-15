@@ -21,6 +21,7 @@ sub map {
     sub {
       my $delay = shift;
       $db->query(Atlas::Model::Site->query_get, $id, $delay->begin);  
+      $db->query(Atlas::Model::Site->query_dimensions, $id, $delay->begin);  
     },   
     sub {
       my $delay = shift;
@@ -29,6 +30,16 @@ sub map {
         my $res = shift; 
         die $err if $err;
         $self->stash( site => $res->hashes->first );
+      };
+      {
+        my $err = shift; 
+        my $res = shift; 
+        die $err if $err;
+        my $canvas = $res->hashes->first;
+        if ($canvas->{'width'} < 640) { $canvas->{'width'} = 640; }
+        if ($canvas->{'height'} < 480) { $canvas->{'height'} = 480; }
+        $self->stash( width => $canvas->{'width'} );
+        $self->stash( height => $canvas->{'height'} );
       };
       
       # Render response

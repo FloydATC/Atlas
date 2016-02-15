@@ -1,7 +1,13 @@
 % title 'World ';
 % layout 'plain';
+% my $width = $c->stash('width');
+% my $height = $c->stash('height');
 %= include 'menu'
-This is the world<BR>
-<object data="/world/svg" type="image/svg+xml" id="svg" width="640" height="480"></object>
+This is the world at <%= localtime(time) %><BR>
+<object data="/world/svg?width=<%= $width %>&height=<%= $height %>" 
+  type="image/svg+xml" 
+  id="svg" 
+  width="<%= $width %>" 
+  height="<%= $height %>"></object>
 
 
