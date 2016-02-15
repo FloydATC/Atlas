@@ -3,7 +3,9 @@ package Atlas::Model::Host;
 
 sub query_get {
   return "
-    SELECT * 
+    SELECT 
+      *,
+      STATE(up) AS state 
     FROM hosts
     WHERE id = ?
     ORDER BY id
@@ -26,6 +28,7 @@ sub query_peers {
     SELECT 
       hosts.id AS hosts_id,
       hosts.name AS hosts_name,
+      STATE(hosts.up) AS hosts_state,
       commlinks.id AS commlinks_id,
       commlinks.name AS commlinks_name
     FROM hosts, commlinks
@@ -122,10 +125,14 @@ sub query_update_checked {
 sub query_need_check {
   # Find hosts that have not been checked in the last 2 minutes
   return "
-    SELECT *
+    SELECT 
+      *,
+      TIMESTAMPDIFF(MINUTE, checked, NOW()) AS _age
     FROM hosts
     WHERE ip IS NOT NULL
-    AND (checked IS NULL OR TIMESTAMPDIFF(MINUTE, checked, NOW()) >= 2)
+    HAVING _age >= 2 OR _age IS NULL
+    ORDER BY _age DESC
+    LIMIT 25
   ";
 }   
  

@@ -10,6 +10,7 @@ use Atlas::Model::Hostgroup;
 use Atlas::Model::Commlink;
 use Data::Dumper;
 
+
 sub startup {
   my $self = shift;
 

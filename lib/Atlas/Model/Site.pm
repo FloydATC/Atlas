@@ -21,7 +21,9 @@ sub query_get {
 
 sub query_hosts {
   return "
-    SELECT * 
+    SELECT 
+      *,
+      STATE(up) AS state 
     FROM hosts
     WHERE site = ?
     ORDER BY name, id
