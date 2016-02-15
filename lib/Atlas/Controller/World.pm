@@ -29,8 +29,8 @@ sub map {
         my $res = shift;
         die $err if $err;
         my $canvas = $res->hashes->first;
-        if ($canvas->{'width'} < 640) { $canvas->{'width'} = 640; }
-        if ($canvas->{'height'} < 480) { $canvas->{'height'} = 480; }
+        my $min_w = 1280; if ($canvas->{'width'} < $min_w) { $canvas->{'width'} = $min_w; }
+        my $min_h = 1024; if ($canvas->{'height'} < $min_w) { $canvas->{'height'} = $min_w; }
         $self->stash( width => $canvas->{'width'} );
         $self->stash( height => $canvas->{'height'} );
       };

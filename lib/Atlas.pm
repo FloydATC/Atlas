@@ -26,6 +26,8 @@ sub startup {
     state $handle = Mojo::mysql->new("mysql://$DBUSER:$DBPASS\@$DBHOST/$DBNAME");
     $handle->max_connections(25);
   });
+  
+  $self->helper( config => sub { $config } );
 
   my $r = $self->routes;
   $r->get('/world')->to(controller => 'World', action => 'welcome');

@@ -10,6 +10,9 @@
   secrets => [
     'CHANGE_ME'
   ],
+
+  port => 3000,
+  
 };
 
 
