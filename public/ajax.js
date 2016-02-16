@@ -202,4 +202,3 @@ function cgi() {
   ajax[l].send2perl();
 }
 
-

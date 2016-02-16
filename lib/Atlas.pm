@@ -32,6 +32,8 @@ sub startup {
   my $r = $self->routes;
   $r->get('/world')->to(controller => 'World', action => 'welcome');
   $r->get('/world/map')->to(controller => 'World', action => 'map');
+  $r->get('/world/import_begin')->to(controller => 'World', action => 'import_begin');
+  $r->post('/world/import_preview')->to(controller => 'World', action => 'import_preview');
   $r->get('/world/svg')->to(controller => 'World', action => 'svg');
   $r->get('/worldmap/popup')->to(controller => 'World', action => 'menu');
   $r->get('/site')->to(controller => 'Site', action => 'welcome');

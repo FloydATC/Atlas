@@ -1,6 +1,8 @@
 package Atlas::Controller::World;
 use Mojo::Base 'Mojolicious::Controller';
 
+use Text::CSV_XS;
+use Data::Dumper;
 
 
 # Action
@@ -9,6 +11,41 @@ sub welcome {
 
   # Render response
   $self->render( text => 'Hello there.' );
+}
+
+sub import_begin {
+  my $self = shift;
+
+  # Render response
+  $self->render( template => 'import_begin' );
+}
+
+sub import_preview {
+  my $self = shift;
+
+  my $file = $self->req->upload('file');
+  my $separator = $self->param('separator');
+  my $skip = $self->param('skip');
+  if ($file) {
+    my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, sep_char => $separator });
+    my @lines = split(/[\r\n]+/, $file->slurp);
+    my $count = 0;
+    my $rows = [];
+    my $cols = 0;
+    foreach my $line (@lines) {
+      my $status = $csv->parse($line);
+      print "csv status=$status\n";
+      push @{$rows}, [ $csv->fields() ];
+      if (scalar $csv->fields() > $cols) { $cols = scalar $csv->fields(); }
+      $count++;      
+      last if $count == 10;
+    }
+    print Dumper($rows);
+    $self->stash( rows => $rows );
+    $self->stash( cols => $cols );
+  }
+  # Render response
+  $self->render( template => 'import_preview' );
 }
 
 sub map {

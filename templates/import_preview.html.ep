@@ -1,0 +1,29 @@
+% my $file = $self->req->upload('file');
+% my $skip = $self->param('skip');
+% my @rows = @{$self->stash('rows')};
+% my $cols = $self->stash('cols');
+% my $separator = $self->param('separator');
+
+% if ($file) {
+file = <%= $file %><BR>
+filename = <%= $file->filename %><BR>
+size = <%= $file->size %> bytes<BR>
+% }
+
+rows = <%= scalar @rows %><BR>
+cols = <%= $cols %><BR>
+skip = <%= $skip %><BR>
+separator = <%= $separator %>
+<P>
+<%= localtime(time) %>
+<P>
+
+<TABLE>
+% foreach my $row (@rows) {
+<TR>
+%   foreach my $col (1 .. $cols) {
+<TD><%= $row->[$col-1] %></TD>
+%   }
+</TR>
+% }
+</TABLE>

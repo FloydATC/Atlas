@@ -1,0 +1,34 @@
+% title 'Import';
+% layout 'plain';
+%= include 'menu'
+<SCRIPT type="text/javascript" src="/upload.js"></SCRIPT>
+<FORM action="<%= $c->url_for('/world/import_preview') %>" 
+  method="POST" 
+  enctype="multipart/form-data" 
+  onsubmit="AJAXSubmit(this, 'preview'); return false;">
+
+File name <INPUT type="file" name="file"><BR>
+
+File format preset <SELECT name="preset">
+<OPTION value="">(New, please specify)</OPTION>
+</SELECT><INPUT type="text" name="new_preset" value=""><BR>
+
+Skip header lines <SELECT name="skip">
+<OPTION value="0">0 lines</OPTION>
+<OPTION value="1">1 line</OPTION>
+<OPTION value="2">2 lines</OPTION>
+</SELECT><BR>
+
+Field separator <SELECT name="separator">
+<OPTION value=";">Semicolon (;)</OPTION>
+<OPTION value=",">Comma (,)</OPTION>
+</SELECT><BR>
+
+<INPUT type="submit" name="preview" value="Preview">
+
+<DIV id="preview"></DIV>
+
+</FORM>
+
+
+
