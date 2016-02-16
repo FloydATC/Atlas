@@ -1,8 +1,10 @@
 package Atlas::Controller::Host;
 use Mojo::Base 'Mojolicious::Controller';
 
-use Socket;
+#use Socket;
+use Atlas::Net::Ping;
 use Data::Dumper;
+
 
 # Action
 sub welcome {
@@ -453,11 +455,19 @@ sub send_echo_request {
         $host = $res->hashes->first;
       };
 
-      # Send out an ICMP echo request
+      # Send out three ICMP echo requests
       # The pcap thread is already listening for ICMP echo replies (and anything else)
-      socket(my $sock, PF_INET, SOCK_RAW, getprotobyname('icmp')) || die "Error: $!";
-      my $payload = pack("C2n3", 8, 0, 0xf7fd, 0x0001, 0x0001); # type=8(echo), subtype=0(n/a), crc=0xf7fd, id=1, seq=1
-      send($sock, $payload, 0, sockaddr_in(0, inet_aton($host->{'ip'}))) || die "Error: $!";
+      my $packet = Atlas::Net::Ping->new( destination => $host->{'ip'}, id => 1, seq => 1 );
+      $packet->send if $packet;
+      Mojo::IOLoop->timer(0.200 => sub {
+        my $packet = Atlas::Net::Ping->new( destination => $host->{'ip'}, id => 1, seq => 2 );
+        $packet->send if $packet;
+      });
+      Mojo::IOLoop->timer(0.400 => sub {
+        my $packet = Atlas::Net::Ping->new( destination => $host->{'ip'}, id => 1, seq => 3 );
+        $packet->send if $packet;
+      });
+
 
       $db->query(Atlas::Model::Host->query_update_checked, $host->{'id'}, $delay->begin);
     },
