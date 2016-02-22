@@ -14,7 +14,7 @@
 <P>
 
 % if ($error) {
-<PRE><%= $error %></PRE>
+<DIV class="error"><PRE><%= $error %></PRE></DIV>
 % }
 
 <TABLE class="preview">

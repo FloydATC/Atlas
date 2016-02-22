@@ -552,6 +552,7 @@ sub import_loop {
   
   # Are we done?
   unless ($line) {
+    $self->write_chunk("<P><B>Import completed successfully</B></P>");
     $self->finish(); # Final chunk
     return;
   }
@@ -574,7 +575,8 @@ sub import_loop {
     }
   } 
   unless ($site) { 
-    $self->render( text => "Nothing to import. Maybe you should try to select one or more fields?");
+    $self->stash( error => "Nothing to import. Maybe you should try to select one or more fields?" );
+    $self->render( template => 'import_failed' );
     return;
   }
   
@@ -590,8 +592,8 @@ sub import_loop {
   }  
      
   # DEBUG
-  $self->write_chunk('site: '.Dumper($site)."<BR>\n");
-  $self->write_chunk('sitegroup: '.Dumper($sitegroup)."<BR>\n");
+  #$self->write_chunk('site: '.Dumper($site)."<BR>\n");
+  #$self->write_chunk('sitegroup: '.Dumper($sitegroup)."<BR>\n");
 
   my $sitegroup_id = undef;
   my $site_id = undef;
@@ -611,7 +613,8 @@ sub import_loop {
     }
   
     if (!defined $site_key_field && !defined $site_key_value) {
-      $self->render( text => "You have selected to import sites but a required identifier is missing" );
+      $self->stash( error => "You have selected to import sites but a required identifier is missing" );
+      $self->render( template => 'import_failed' );
       return;
     }
   }  
@@ -631,7 +634,8 @@ sub import_loop {
     }
   
     if (!defined $sitegroup_key_field && !defined $sitegroup_key_value) {
-      $self->render( text => "You have selected to import sitegroups but a required identifier is missing" );
+      $self->stash( error => "You have selected to import sitegroups but a required identifier is missing" );
+      $self->render( template => 'import_failed' );
       return;
     }
   }  
@@ -673,13 +677,15 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          unless ($err =~ /Duplicate entry/) {
+          if ($err =~ /Duplicate entry/) {
+            $self->write_chunk("Site already exists<BR>\n");
+          } else {
             die $err;
           }
         }
         if ($res->last_insert_id) {
           $site_id = $res->last_insert_id;
-          $self->write_chunk('successfully inserted site with id: '.$site_id."<BR>\n");
+          $self->write_chunk('Successfully inserted site with id: '.$site_id."<BR>\n");
         }
       }
 
@@ -687,35 +693,30 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          unless ($err =~ /Duplicate entry/) {
+          if ($err =~ /Duplicate entry/) {
+            $self->write_chunk("Sitegroup already exists<BR>\n");
+          } else {
             die $err;
           }
         }
         if ($res->last_insert_id) {
           $sitegroup_id = $res->last_insert_id;
-          $self->write_chunk('successfully inserted sitegroup with id: '.$sitegroup_id."<BR>\n");
-        } else {
-          # Insert failed. Find the conflicting record.
-          $self->write_chunk("Duplicate entry? Update existing sitegroup instead<BR>\n");
-          $can_pass = 0;
-          my $statement = "SELECT id FROM sitegroups WHERE $sitegroup_key_field = $sitegroup_key_value"; # These variables are safe
-          $self->write_chunk('sql: '.$statement."<BR>\n");
-          $db->query($statement, $delay->begin);
+          $self->write_chunk('Successfully inserted sitegroup with id: '.$sitegroup_id."<BR>\n");
         }
       }
       
-      if ($site && !$site_id) {
+      if (keys %{$site} && !$site_id) {
         # Insert failed. Find the conflicting record.
-        $self->write_chunk("Duplicate entry? Update existing site instead<BR>\n");
+        $self->write_chunk("Update existing site instead<BR>\n");
         $can_pass = 0;
         my $statement = "SELECT id FROM sites WHERE $site_key_field = $site_key_value"; # These variables are safe
         $self->write_chunk('sql: '.$statement."<BR>\n");
         $db->query($statement, $delay->begin);
       }
 
-      if ($sitegroup && !$sitegroup_id) {
+      if (keys %{$sitegroup} && !$sitegroup_id) {
         # Insert failed. Find the conflicting record.
-        $self->write_chunk("Duplicate entry? Update existing sitegroup instead<BR>\n");
+        $self->write_chunk("Update existing sitegroup instead<BR>\n");
         $can_pass = 0;
         my $statement = "SELECT id FROM sitegroups WHERE $sitegroup_key_field = $sitegroup_key_value"; # These variables are safe
         $self->write_chunk('sql: '.$statement."<BR>\n");
@@ -728,7 +729,7 @@ sub import_loop {
       my $can_pass = 1; # Set to 0 if we need to do a follow-up query
 
       my $site_hashref = undef;
-      if ($site && !$site_id) {
+      if (keys %{$site} && !$site_id) {
         my $err = shift;
         my $res = shift;
         die $err if $err;
@@ -736,14 +737,14 @@ sub import_loop {
       }
  
       my $sitegroup_hashref = undef;
-      if ($sitegroup && !$sitegroup_id) {
+      if (keys %{$sitegroup} && !$sitegroup_id) {
         my $err = shift;
         my $res = shift;
         die $err if $err;
         $sitegroup_hashref = $res->hashes->first;
       }
 
-      if ($site && !$site_id) {
+      if (keys %{$site} && !$site_id) {
         # We are here because insert failed and we need to update an existing record. Do so now.
         $can_pass = 0;
         my @fields = sort keys %{$site};
@@ -757,7 +758,7 @@ sub import_loop {
         $db->query($statement, $delay->begin);
       }
  
-      if ($sitegroup && !$sitegroup_id) {
+      if (keys %{$sitegroup} && !$sitegroup_id) {
         # We are here because insert failed and we need to update an existing record. Do so now.
         $can_pass = 0;
         my @fields = sort keys %{$sitegroup};

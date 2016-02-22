@@ -1,11 +1,11 @@
 
-BODY		{
+BODY {
 	background-color: lightgray;
 	font-family: sans-serif;
 	font-size: 9pt;
 }
 
-DIV.popup	{
+DIV.popup {
 	background-color: #DFDFFF;
 	min-width: 200px;
 	border: 1px solid red;
@@ -19,5 +19,28 @@ TABLE.preview TR TD {
 
 TABLE.preview TR.skip TD {
 	background-color: gray;
+}
+
+DIV.error {
+	border: 1px solid white;
+	background-color: red;
+	color: white;
+}
+
+DIV#progressbar {
+	width: 400px;
+	height: 80px;
+	background-color: gray;
+	border: 1px solid black;
+}
+
+DIV#progressbar DIV#left {
+	background-color: lightgreen;
+	height: 60px;
+}
+
+DIV#progressbar DIV#right {
+	background-color: white;
+	height: 60px;
 }
 
