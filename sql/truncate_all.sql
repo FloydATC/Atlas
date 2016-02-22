@@ -9,6 +9,7 @@ DELIMITER //
 
 CREATE PROCEDURE truncate_all()
 BEGIN
+  SET FOREIGN_KEY_CHECKS=0;
   TRUNCATE commlinks;
   TRUNCATE hostgroupmembers;
   TRUNCATE hostgroups;
@@ -17,6 +18,7 @@ BEGIN
   TRUNCATE sitegroups;
   TRUNCATE sites;
   TRUNCATE statechanges;
+  SET FOREIGN_KEY_CHECKS=1;
 END //
 
 DELIMITER ;

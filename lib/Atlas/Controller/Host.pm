@@ -486,5 +486,20 @@ sub send_echo_request {
 
 }
 
+
+sub import {
+  my $self = shift;
+
+  # Key parameters
+  my $file = $self->req->upload('file');
+  my $separator = $self->param('separator');
+  my $skip = $self->param('skip');
+  my $into = $self->param('into');
+
+  $self->render( text => "host imports not yet implemented, sorry" );
+}
+
+
+
 1;
 

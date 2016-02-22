@@ -1,6 +1,15 @@
 package Atlas::Model::Host;
 
 
+sub import_fields {
+  return qw(
+    node
+    name
+    ip
+  );
+}
+
+
 sub query_get {
   return "
     SELECT 

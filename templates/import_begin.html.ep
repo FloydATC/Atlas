@@ -2,29 +2,34 @@
 % layout 'plain';
 %= include 'menu'
 <SCRIPT type="text/javascript" src="/upload.js"></SCRIPT>
-<FORM action="<%= $c->url_for('/world/import_preview') %>" 
+<FORM action="/world/import" 
   method="POST" 
   enctype="multipart/form-data" 
   onsubmit="AJAXSubmit(this, 'preview'); return false;">
 
-File name <INPUT type="file" name="file"><BR>
+File name <INPUT type="file" name="file" onchange="AJAXSubmit(this.form, 'preview');"><BR>
 
-File format preset <SELECT name="preset">
+File format preset <SELECT name="preset" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="">(New, please specify)</OPTION>
 </SELECT><INPUT type="text" name="new_preset" value=""><BR>
 
-Skip header lines <SELECT name="skip">
+Skip header lines <SELECT name="skip" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="0">0 lines</OPTION>
 <OPTION value="1">1 line</OPTION>
 <OPTION value="2">2 lines</OPTION>
 </SELECT><BR>
 
-Field separator <SELECT name="separator">
+Field separator <SELECT name="separator" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value=";">Semicolon (;)</OPTION>
 <OPTION value=",">Comma (,)</OPTION>
 </SELECT><BR>
 
-<INPUT type="submit" name="preview" value="Preview">
+Import into <SELECT name="into" onchange="this.form.action='/'+this.value+'/import';AJAXSubmit(this.form, 'preview');">
+<OPTION value="world"></OPTION>
+<OPTION value="site">Sites</OPTION>
+<OPTION value="host">Hosts</OPTION>
+<OPTION value="commlink">Commlinks</OPTION>
+</SELECT><BR>
 
 <DIV id="preview"></DIV>
 

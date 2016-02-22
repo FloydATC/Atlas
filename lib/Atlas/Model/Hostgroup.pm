@@ -1,5 +1,15 @@
 package Atlas::Model::Hostgroup;
 
+
+sub import_fields {
+  return qw(
+    node
+    name
+  );
+}
+
+
+
 sub query_get {
   return "
     SELECT * 

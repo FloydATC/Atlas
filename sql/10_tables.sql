@@ -2,7 +2,7 @@
 --
 -- Host: zeus    Database: atlas
 -- ------------------------------------------------------
--- Server version	5.5.41-MariaDB
+-- Server version	5.5.44-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -29,7 +29,9 @@ CREATE TABLE `commlinks` (
   `host2` int(11) NOT NULL,
   `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `node` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `node` (`node`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -41,6 +43,29 @@ LOCK TABLES `commlinks` WRITE;
 /*!40000 ALTER TABLE `commlinks` DISABLE KEYS */;
 /*!40000 ALTER TABLE `commlinks` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER after_commlink_update AFTER UPDATE ON commlinks
+  FOR EACH ROW
+  BEGIN
+    IF (STATE(OLD.up) != STATE(NEW.up)) 
+    THEN
+      INSERT INTO statechanges (object_type, object_id, from_state, to_state) 
+      VALUES ('commlink', NEW.id, STATE(OLD.up), STATE(NEW.up));
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `hostgroupmembers`
@@ -52,7 +77,10 @@ DROP TABLE IF EXISTS `hostgroupmembers`;
 CREATE TABLE `hostgroupmembers` (
   `host` int(11) NOT NULL,
   `hostgroup` int(11) NOT NULL,
-  UNIQUE KEY `hostgroupmembers` (`host`,`hostgroup`)
+  UNIQUE KEY `hostgroupmembers` (`host`,`hostgroup`),
+  KEY `hostgroup` (`hostgroup`),
+  CONSTRAINT `hostgroupmembers_ibfk_2` FOREIGN KEY (`hostgroup`) REFERENCES `hostgroups` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `hostgroupmembers_ibfk_1` FOREIGN KEY (`host`) REFERENCES `hosts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -78,8 +106,12 @@ CREATE TABLE `hostgroups` (
   `site` int(11) NOT NULL,
   `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
+  `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name_site` (`name`,`site`)
+  UNIQUE KEY `name_site` (`name`,`site`),
+  UNIQUE KEY `node` (`node`),
+  KEY `site` (`site`),
+  CONSTRAINT `hostgroups_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -91,6 +123,29 @@ LOCK TABLES `hostgroups` WRITE;
 /*!40000 ALTER TABLE `hostgroups` DISABLE KEYS */;
 /*!40000 ALTER TABLE `hostgroups` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER after_hostgroup_update AFTER UPDATE ON hostgroups
+  FOR EACH ROW
+  BEGIN
+    IF (STATE(OLD.up) != STATE(NEW.up)) 
+    THEN
+      INSERT INTO statechanges (object_type, object_id, from_state, to_state) 
+      VALUES ('hostgroup', NEW.id, STATE(OLD.up), STATE(NEW.up));
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `hosts`
@@ -104,15 +159,19 @@ CREATE TABLE `hosts` (
   `name` varchar(64) NOT NULL,
   `ip` varchar(16) DEFAULT NULL,
   `site` int(11) NOT NULL,
-  `x` int(11) DEFAULT '0',
-  `y` int(11) DEFAULT '0',
+  `x` int(11) DEFAULT NULL,
+  `y` int(11) DEFAULT NULL,
   `up` decimal(5,4) DEFAULT NULL,
   `since` datetime DEFAULT NULL,
   `checked` datetime DEFAULT NULL,
   `alive` datetime DEFAULT NULL,
+  `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
-  KEY `ip` (`ip`)
+  UNIQUE KEY `node` (`node`),
+  KEY `ip` (`ip`),
+  KEY `site` (`site`),
+  CONSTRAINT `hosts_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -124,6 +183,29 @@ LOCK TABLES `hosts` WRITE;
 /*!40000 ALTER TABLE `hosts` DISABLE KEYS */;
 /*!40000 ALTER TABLE `hosts` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
+  FOR EACH ROW
+  BEGIN
+    IF (NEW.x IS NULL AND NEW.y IS NULL)
+    THEN
+      SET NEW.x = 100 + RAND()*200;
+      SET NEW.y = 100 + RAND()*200;
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
@@ -158,7 +240,10 @@ DROP TABLE IF EXISTS `sitegroupmembers`;
 CREATE TABLE `sitegroupmembers` (
   `site` int(11) NOT NULL,
   `sitegroup` int(11) NOT NULL,
-  UNIQUE KEY `sitegroupmembers` (`site`,`sitegroup`)
+  UNIQUE KEY `sitegroupmembers` (`site`,`sitegroup`),
+  KEY `sitegroup` (`sitegroup`),
+  CONSTRAINT `sitegroupmembers_ibfk_2` FOREIGN KEY (`sitegroup`) REFERENCES `sitegroups` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `sitegroupmembers_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -183,8 +268,10 @@ CREATE TABLE `sitegroups` (
   `name` varchar(64) NOT NULL,
   `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
+  `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `node` (`node`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -196,6 +283,29 @@ LOCK TABLES `sitegroups` WRITE;
 /*!40000 ALTER TABLE `sitegroups` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sitegroups` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER after_sitegroup_update AFTER UPDATE ON sitegroups
+  FOR EACH ROW
+  BEGIN
+    IF (STATE(OLD.up) != STATE(NEW.up)) 
+    THEN
+      INSERT INTO statechanges (object_type, object_id, from_state, to_state) 
+      VALUES ('sitegroup', NEW.id, STATE(OLD.up), STATE(NEW.up));
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `sites`
@@ -207,12 +317,14 @@ DROP TABLE IF EXISTS `sites`;
 CREATE TABLE `sites` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
-  `x` int(11) DEFAULT '0',
-  `y` int(11) DEFAULT '0',
+  `x` int(11) DEFAULT NULL,
+  `y` int(11) DEFAULT NULL,
   `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
+  `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `node` (`node`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -224,6 +336,52 @@ LOCK TABLES `sites` WRITE;
 /*!40000 ALTER TABLE `sites` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sites` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_site_insert BEFORE INSERT ON sites
+  FOR EACH ROW
+  BEGIN
+    IF (NEW.x IS NULL AND NEW.y IS NULL)
+    THEN
+      SET NEW.x = 100 + RAND()*200;
+      SET NEW.y = 100 + RAND()*200;
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER after_site_update AFTER UPDATE ON sites
+  FOR EACH ROW
+  BEGIN
+    IF (STATE(OLD.up) != STATE(NEW.up)) 
+    THEN
+      INSERT INTO statechanges (object_type, object_id, from_state, to_state) 
+      VALUES ('site', NEW.id, STATE(OLD.up), STATE(NEW.up));
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `statechanges`
@@ -261,4 +419,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-02-15 13:38:16
+-- Dump completed on 2016-02-22 13:49:02

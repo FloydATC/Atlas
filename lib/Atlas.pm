@@ -33,11 +33,12 @@ sub startup {
   $r->get('/world')->to(controller => 'World', action => 'welcome');
   $r->get('/world/map')->to(controller => 'World', action => 'map');
   $r->get('/world/import_begin')->to(controller => 'World', action => 'import_begin');
-  $r->post('/world/import_preview')->to(controller => 'World', action => 'import_preview');
+  $r->post('/world/import')->to(controller => 'World', action => 'import');
   $r->get('/world/svg')->to(controller => 'World', action => 'svg');
   $r->get('/worldmap/popup')->to(controller => 'World', action => 'menu');
   $r->get('/site')->to(controller => 'Site', action => 'welcome');
   $r->get('/site/map')->to(controller => 'Site', action => 'map');
+  $r->post('/site/import')->to(controller => 'Site', action => 'import'); # Ajax
   $r->post('/site/move')->to(controller => 'Site', action => 'move'); # Ajax
   $r->post('/site/insert')->to(controller => 'Site', action => 'insert'); # Ajax
   $r->post('/site/addgroup')->to(controller => 'Site', action => 'addgroup_byname'); # Ajax
@@ -54,6 +55,7 @@ sub startup {
   $r->get('/sitegroup/popup')->to(controller => 'Sitegroup', action => 'popup');
   $r->get('/sitegroup/popup_addmember')->to(controller => 'Sitegroup', action => 'popup_addmember');
   $r->get('/sitegroup/popup_removemember')->to(controller => 'Sitegroup', action => 'popup_removemember');
+  $r->post('/host/import')->to(controller => 'Host', action => 'import'); # Ajax
   $r->post('/host/move')->to(controller => 'Host', action => 'move');
   $r->get('/host/popup')->to(controller => 'Host', action => 'popup'); # Clicked on host icon
   $r->get('/host/popup_new')->to(controller => 'Host', action => 'popup_new'); # Create new host
@@ -69,6 +71,7 @@ sub startup {
   $r->get('/hostgroup/popup_addmember')->to(controller => 'Hostgroup', action => 'popup_addmember');
   $r->get('/hostgroup/popup_removemember')->to(controller => 'Hostgroup', action => 'popup_removemember');
   $r->get('/hostgroup/popup')->to(controller => 'Hostgroup', action => 'popup');
+  $r->post('/commlink/import')->to(controller => 'Commlink', action => 'import'); # Ajax
   $r->post('/commlink/insert')->to(controller => 'Commlink', action => 'insert'); # Ajax
   $r->post('/loopback/seen')->to(controller => 'Host', action => 'seen'); # SEEN thread
   $r->post('/loopback/beam')->to(controller => 'World', action => 'beam'); # BEAM thread

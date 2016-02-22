@@ -1,6 +1,7 @@
 package Atlas::Controller::Site;
 use Mojo::Base 'Mojolicious::Controller';
 
+use Text::CSV_XS;
 use Data::Dumper;
 
 # Action
@@ -460,5 +461,321 @@ sub menu {
 }
 
 
+sub import {
+  my $self = shift;
+  
+  # Key parameters
+  my $file = $self->req->upload('file');
+  my $separator = $self->param('separator');
+  my $skip = $self->param('skip');
+  my $into = $self->param('into');
+
+
+  my @fields = (
+    [ 'sites.name'      => 'site name (unique, required)' ],
+    [ 'sites.node'      => 'site node (unique)'           ],
+    [ 'sitegroups.name' => 'sitegroup name (optional)'    ],
+    [ 'sitegroups.node' => 'sitegroup node (optional)'    ]
+  );
+
+  # Did we actually receive a file?
+  if ($file) {
+    my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, sep_char => $separator });
+    my @lines = split(/[\r\n]+/, $file->slurp);
+    if ($self->param('execute')) {
+      # Execute import
+      while ($skip) { shift @lines; $skip--; }   
+      $self->stash( lines => \@lines );
+      $self->stash( csv => $csv );
+
+      # Enter non-blocking import loop
+      $self->import_loop();
+      return;
+    } else {
+      # Preview import
+      my @skip_rows = ();
+      my @rows = ();
+      my $error = undef;
+      my $cols = 0; 
+      my $count = $skip;
+      # Skip rows? (headers etc.)
+      while ($count && @lines) {
+        push @skip_rows, shift @lines;
+        $count--; 
+      }
+      $count = 10 - $skip;      
+      # Preview rows
+      while ($count && @lines) {
+        my $line = shift @lines;
+        my $status = $csv->parse($line);
+        unless ($status) {
+          $error = $csv->error_diag."\n".$csv->error_input;
+          last;
+        }
+        push @rows, [ $csv->fields() ];
+        if (scalar $csv->fields() > $cols) { $cols = scalar $csv->fields(); }
+        $count--;      
+      }
+
+      # Finalize for presentation
+      $self->stash( skip_rows => \@skip_rows );
+      $self->stash( rows => \@rows );
+      $self->stash( cols => $cols );
+      $self->stash( fields => \@fields );
+      $self->stash( error => $error );
+
+      # Render response
+      $self->render( template => 'import_preview' );
+      return;
+    }
+
+  }
+  
+}
+
+
+sub import_loop {
+  my $self = shift;
+
+  my $csv = $self->stash('csv');
+  
+  # Get the first line
+  my $line = shift @{$self->stash('lines')};
+  
+  # Are we done?
+  unless ($line) {
+    $self->finish(); # Final chunk
+    return;
+  }
+   
+  # Parse line
+  my $status = $csv->parse($line);
+  last unless $status; # Needs logging and reporting, the user must know what happened. FIXME!
+  my @columns =  $csv->fields();
+
+  my $db = $self->mysql->db;
+  
+  # Find site columns (if any)
+  my $site = undef;
+  foreach my $col (1 .. scalar @columns) {
+    if ($self->param('c'.$col) =~ /^sites\.(.+)$/) {
+      my $key = $1;
+      $key =~ s/\W+//g; # Sanitize key
+      my $value = $db->quote($columns[$col-1]); # Sanitize value
+      $site->{$key} = $value;
+    }
+  } 
+  unless ($site) { 
+    $self->render( text => "Nothing to import");
+    return;
+  }
+  
+  # Find sitegroup columns (if any)
+  my $sitegroup = undef;
+  foreach my $col (1 .. scalar @columns) {
+    if ($self->param('c'.$col) =~ /^sitegroups\.(.+)$/) {
+      my $key = $1;
+      $key =~ s/\W+//g; # Sanitize key
+      my $value = $db->quote($columns[$col-1]); # Sanitize value
+      $sitegroup->{$key} = $value;
+    }
+  }  
+     
+  # DEBUG
+  $self->write_chunk('site: '.Dumper($site)."<BR>\n");
+  $self->write_chunk('sitegroup: '.Dumper($sitegroup)."<BR>\n");
+  
+
+
+  my $sitegroup_id = undef;
+  my $site_id = undef;
+  
+  # Choose unique identifier for sites (prefer 'node', fall back to 'name')
+  my $site_key_field = undef;
+  my $site_key_value = undef;
+  if (defined $site->{'node'}) {
+    $site_key_field = 'node';
+    $site_key_value = $site->{$site_key_field};
+    delete $site->{'node'};
+  } elsif (defined $site->{'name'}) {
+    $site_key_field = 'name';
+    $site_key_value = $site->{$site_key_field};
+    delete $site->{'name'};
+  }
+  
+  if ($site && (!defined $site_key_field && !defined $site_key_value)) {
+    $self->render( text => "You have selected to import sites but a required identifier is missing" );
+    return;
+  }  
+
+  # Choose unique identifier for sitegroups (prefer 'node', fall back to 'name')
+  my $sitegroup_key_field = undef;
+  my $sitegroup_key_value = undef;
+  if (defined $sitegroup->{'node'}) {
+    $sitegroup_key_field = 'node';
+    $sitegroup_key_value = $sitegroup->{$sitegroup_key_field};
+    delete $sitegroup->{'node'};
+  } elsif (defined $sitegroup->{'name'}) {
+    $sitegroup_key_field = 'name';
+    $sitegroup_key_value = $sitegroup->{$sitegroup_key_field};
+    delete $sitegroup->{'name'};
+  }
+  
+  if ($sitegroup && (!defined $sitegroup_key_field && !defined $sitegroup_key_value)) {
+    $self->render( text => "You have selected to import sitegroups but a required identifier is missing" );
+    return;
+  }  
+  
+
+  
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      
+      if ($site) {
+        # Try a simple INSERT - will fail if any unique key conflicts with an existing record
+        my @fields = sort keys %{$site};
+        my @values = @{$site}{@fields};
+        my $statement = "
+          INSERT INTO sites (".join(',',@fields,$site_key_field).") 
+          VALUES (".join(',',@values,$site_key_value).")
+        ";
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $delay->begin);
+      }
+
+      if ($sitegroup) {
+        # Try a simple INSERT - will fail if any unique key conflicts with an existing record
+        my @fields = sort keys %{$sitegroup};
+        my @values = @{$sitegroup}{@fields};
+        my $statement = "
+          INSERT INTO sitegroups (".join(',',@fields,$sitegroup_key_field).") 
+          VALUES (".join(',',@values,$sitegroup_key_value).")
+        ";
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $delay->begin);
+      }
+      
+    }, 
+    sub {
+      my $delay = shift;
+      my $can_pass = 1; # Set to 0 if we need to do a follow-up query
+
+      if ($site) {
+        my $err = shift;
+        my $res = shift;
+        if ($err) {
+          unless ($err =~ /Duplicate entry/) {
+            die $err;
+          }
+        }
+        if ($res->last_insert_id) {
+          $site_id = $res->last_insert_id;
+          $self->write_chunk('successfully inserted site with id: '.$site_id."<BR>\n");
+        } else {
+          # Insert failed. Find the conflicting record.
+          $self->write_chunk("Duplicate entry? Update existing site instead<BR>\n");
+          $can_pass = 0;
+          my $statement = "SELECT id FROM sites WHERE $site_key_field = $site_key_value"; # These variables are safe
+          $self->write_chunk('sql: '.$statement."<BR>\n");
+          $db->query($statement, $delay->begin);
+        }
+      }
+
+      if ($sitegroup) {
+        my $err = shift;
+        my $res = shift;
+        if ($err) {
+          unless ($err =~ /Duplicate entry/) {
+            die $err;
+          }
+        }
+        if ($res->last_insert_id) {
+          $sitegroup_id = $res->last_insert_id;
+          $self->write_chunk('successfully inserted sitegroup with id: '.$sitegroup_id."<BR>\n");
+        } else {
+          # Insert failed. Find the conflicting record.
+          $self->write_chunk("Duplicate entry? Update existing sitegroup instead<BR>\n");
+          $can_pass = 0;
+          my $statement = "SELECT id FROM sitegroups WHERE $sitegroup_key_field = $sitegroup_key_value"; # These variables are safe
+          $self->write_chunk('sql: '.$statement."<BR>\n");
+          $db->query($statement, $delay->begin);
+        }
+      }
+      
+      $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
+    },
+    sub {
+      my $delay = shift;
+      my $can_pass = 1; # Set to 0 if we need to do a follow-up query
+
+      if ($site) {
+        unless ($site_id) {
+          my $err = shift;
+          my $res = shift;
+          die $err if $err;
+          my $hashref = $res->hashes->first;
+          $site_id = $hashref->{'id'};
+          # We are here because insert failed and we need to update an existing record. Do so now.
+          $can_pass = 0;
+          my @fields = sort keys %{$site};
+          #my @values = @{$site}{@fields};
+          my $statement = "
+            UPDATE sites
+            SET ".join(',',map { $_.'='.$site->{$_} } @fields)."
+            WHERE id = $site_id
+          ";
+          $self->write_chunk('sql: '.$statement."<BR>\n");
+          $db->query($statement, $delay->begin);
+        }
+      }
+
+      if ($sitegroup) {
+        unless ($sitegroup_id) {
+          my $err = shift;
+          my $res = shift;
+          die $err if $err;
+          my $hashref = $res->hashes->first;
+          $sitegroup_id = $hashref->{'id'};
+          # We are here because insert failed and we need to update an existing record. Do so now.
+          $can_pass = 0;
+          my @fields = sort keys %{$sitegroup};
+          #my @values = @{$sitegroup}{@fields};
+          my $statement = "
+            UPDATE sitegroups
+            SET ".join(',',map { $_.'='.$sitegroup->{$_} } @fields)."
+            WHERE id = $sitegroup_id
+          ";
+          $self->write_chunk('sql: '.$statement."<BR>\n");
+          $db->query($statement, $delay->begin);
+        }
+      }
+
+      $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
+    },
+    sub {
+      my $delay = shift;
+      my $can_pass = 1; # Set to 0 if we need to do a follow-up query
+
+      # If we have both a $site_id and a $sitegroup_id at this point, join them together
+      if ($site_id && $sitegroup_id) {
+        $can_pass = 0;
+        my $statement = Atlas::Model::Site->query_set_sitegroup();
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $site_id, $sitegroup_id, $delay->begin);
+      }
+       
+      $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
+    },
+    sub {
+      my $delay = shift;
+
+      # Loop. Looks recursive but does not stack because we are inside a Mojo::IOLoop
+      $self->write_chunk("<HR>\n");
+      $self->import_loop(); 
+    }
+  ); 
+     
+}
 
 1;

@@ -20,33 +20,31 @@ sub import_begin {
   $self->render( template => 'import_begin' );
 }
 
-sub import_preview {
+sub import {
   my $self = shift;
 
+  # Key parameters
   my $file = $self->req->upload('file');
-  my $separator = $self->param('separator');
-  my $skip = $self->param('skip');
-  if ($file) {
-    my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, sep_char => $separator });
-    my @lines = split(/[\r\n]+/, $file->slurp);
-    my $count = 0;
-    my $rows = [];
-    my $cols = 0;
-    foreach my $line (@lines) {
-      my $status = $csv->parse($line);
-      print "csv status=$status\n";
-      push @{$rows}, [ $csv->fields() ];
-      if (scalar $csv->fields() > $cols) { $cols = scalar $csv->fields(); }
-      $count++;      
-      last if $count == 10;
-    }
-    print Dumper($rows);
-    $self->stash( rows => $rows );
-    $self->stash( cols => $cols );
+  my $into = $self->param('into');
+
+  # Redirect to appropriate form fragment
+  if ($file && $file->size() > 0 && $into) {
+    if ($into eq 'sites') { $self->redirect_to('/site/import'); }     
+    if ($into eq 'hosts') { $self->redirect_to('/host/import'); }     
+    if ($into eq 'commlinks') { $self->redirect_to('/commlink/import'); }     
+
+    # Unknown 'into' selected. Empty response.
+    $self->render( text => "" );  
+  } else {
+    # No file file uploaded yet, or 'into' not selected. Empty response.
+    $self->render( text => "" );
   }
-  # Render response
-  $self->render( template => 'import_preview' );
+
+  return;
+  
 }
+
+
 
 sub map {
   my $self = shift;
@@ -204,6 +202,7 @@ sub beam {
       my $delay = shift;
 
       $self->write_chunk("Exiting\n");
+      $self->finish(); # Final chunk
     }
 
   )->wait;

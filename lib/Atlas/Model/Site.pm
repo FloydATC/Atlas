@@ -1,6 +1,15 @@
 package Atlas::Model::Site;
 
 
+sub import_fields {
+  return qw(
+    node
+    name
+  );
+}
+
+            
+            
 sub query_move {
   return "
     UPDATE sites 
@@ -144,6 +153,14 @@ sub query_notmemberof {
       WHERE site = ? 
     )
     ORDER BY sitegroups.name, sitegroups.id
+  ";
+}
+
+
+sub query_set_sitegroup {
+  # Replace any sitegroup memberships with just one
+  return "
+    CALL set_sitegroup(?, ?)
   ";
 }
 

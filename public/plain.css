@@ -10,3 +10,14 @@ DIV.popup	{
 	min-width: 200px;
 	border: 1px solid red;
 }
+
+TABLE.preview TR TD {
+	font-family: monospace;
+	border: 1px solid black;
+	background-color: white;
+}
+
+TABLE.preview TR.skip TD {
+	background-color: gray;
+}
+

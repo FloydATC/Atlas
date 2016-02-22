@@ -1,29 +1,48 @@
 % my $file = $self->req->upload('file');
 % my $skip = $self->param('skip');
+% my @skip_rows = @{$self->stash('skip_rows')};
 % my @rows = @{$self->stash('rows')};
 % my $cols = $self->stash('cols');
 % my $separator = $self->param('separator');
+% my @fields = @{$self->stash('fields')};
+% my $mode = '';
+% my $error = $self->stash('error');
+% $mode = 'preview' if $self->param('preview'); 
+% $mode = 'execute' if $self->param('execute'); 
 
-% if ($file) {
-file = <%= $file %><BR>
-filename = <%= $file->filename %><BR>
-size = <%= $file->size %> bytes<BR>
+<P>
+
+% if ($error) {
+<PRE><%= $error %></PRE>
 % }
 
-rows = <%= scalar @rows %><BR>
-cols = <%= $cols %><BR>
-skip = <%= $skip %><BR>
-separator = <%= $separator %>
-<P>
-<%= localtime(time) %>
-<P>
-
-<TABLE>
-% foreach my $row (@rows) {
+<TABLE class="preview">
+<THEAD>
 <TR>
+% foreach my $col (1 .. $cols) {
+<TH><SELECT name="c<%= $col %>">
+<OPTION value="">(ignore)</OPTION>
+%   foreach my $field (@fields) {
+<OPTION value="<%= $field->[0] %>"><%= $field->[1] %></OPTION>
+%   }
+</SELECT></TH>
+% }
+</TR>
+</THEAD>
+<TBODY>
+% foreach my $line (@skip_rows) {
+<TR class="skip"><TD colspan="<%= $cols %>"><%= $line %></TD></TR>
+% }
+% foreach my $row (@rows) {
+<TR class="include">
 %   foreach my $col (1 .. $cols) {
 <TD><%= $row->[$col-1] %></TD>
 %   }
 </TR>
+%   $skip--;
 % }
+</TBODY>
 </TABLE>
+
+<INPUT type="hidden" name="execute" value="0">
+<INPUT type="button" value="Import now" onclick="this.form.execute.value=1; AJAXSubmit(this.form, 'preview');">
