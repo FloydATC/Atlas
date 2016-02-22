@@ -5,6 +5,7 @@
 % my $cols = $self->stash('cols');
 % my $separator = $self->param('separator');
 % my @fields = @{$self->stash('fields')};
+% my @col_width = @{$self->stash('col_width')};
 % my $mode = '';
 % my $error = $self->stash('error');
 % $mode = 'preview' if $self->param('preview'); 
@@ -20,7 +21,7 @@
 <THEAD>
 <TR>
 % foreach my $col (1 .. $cols) {
-<TH><SELECT name="c<%= $col %>">
+<TH><SELECT name="c<%= $col %>" style="width: <%= $col_width[$col-1] >= 6 ? $col_width[$col-1] : 6 %>em;">
 <OPTION value="">(ignore)</OPTION>
 %   foreach my $field (@fields) {
 <OPTION value="<%= $field->[0] %>"><%= $field->[1] %></OPTION>
@@ -31,7 +32,7 @@
 </THEAD>
 <TBODY>
 % foreach my $line (@skip_rows) {
-<TR class="skip"><TD colspan="<%= $cols %>"><%= $line %></TD></TR>
+<TR class="skip"><TD colspan="<%= $cols*2 %>"><%= $line %></TD></TR>
 % }
 % foreach my $row (@rows) {
 <TR class="include">

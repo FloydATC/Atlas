@@ -497,6 +497,7 @@ sub import {
       my @rows = ();
       my $error = undef;
       my $cols = 0; 
+      my @col_width = ();
       my $count = $skip;
       # Skip rows? (headers etc.)
       while ($count && @lines) {
@@ -512,8 +513,14 @@ sub import {
           $error = $csv->error_diag."\n".$csv->error_input;
           last;
         }
-        push @rows, [ $csv->fields() ];
-        if (scalar $csv->fields() > $cols) { $cols = scalar $csv->fields(); }
+        my @fields = $csv->fields();
+        push @rows, [ @fields ];
+        if (scalar @fields > $cols) { $cols = scalar @fields; }
+        foreach my $col (1 .. scalar @fields) {
+          if (!defined $col_width[$col-1] || length($fields[$col-1])/1.5 > $col_width[$col-1]) { 
+            $col_width[$col-1] = length($fields[$col-1])/1.5; 
+          }
+        }
         $count--;      
       }
 
@@ -522,6 +529,7 @@ sub import {
       $self->stash( rows => \@rows );
       $self->stash( cols => $cols );
       $self->stash( fields => \@fields );
+      $self->stash( col_width => \@col_width );
       $self->stash( error => $error );
 
       # Render response
@@ -566,7 +574,7 @@ sub import_loop {
     }
   } 
   unless ($site) { 
-    $self->render( text => "Nothing to import");
+    $self->render( text => "Nothing to import. Maybe you should try to select one or more fields?");
     return;
   }
   
@@ -584,8 +592,6 @@ sub import_loop {
   # DEBUG
   $self->write_chunk('site: '.Dumper($site)."<BR>\n");
   $self->write_chunk('sitegroup: '.Dumper($sitegroup)."<BR>\n");
-  
-
 
   my $sitegroup_id = undef;
   my $site_id = undef;
@@ -593,40 +599,42 @@ sub import_loop {
   # Choose unique identifier for sites (prefer 'node', fall back to 'name')
   my $site_key_field = undef;
   my $site_key_value = undef;
-  if (defined $site->{'node'}) {
-    $site_key_field = 'node';
-    $site_key_value = $site->{$site_key_field};
-    delete $site->{'node'};
-  } elsif (defined $site->{'name'}) {
-    $site_key_field = 'name';
-    $site_key_value = $site->{$site_key_field};
-    delete $site->{'name'};
-  }
+  if ($site) {
+    if (defined $site->{'node'}) {
+      $site_key_field = 'node';
+      $site_key_value = $site->{$site_key_field};
+      delete $site->{'node'};
+    } elsif (defined $site->{'name'}) {
+      $site_key_field = 'name';
+      $site_key_value = $site->{$site_key_field};
+      delete $site->{'name'};
+    }
   
-  if ($site && (!defined $site_key_field && !defined $site_key_value)) {
-    $self->render( text => "You have selected to import sites but a required identifier is missing" );
-    return;
+    if (!defined $site_key_field && !defined $site_key_value) {
+      $self->render( text => "You have selected to import sites but a required identifier is missing" );
+      return;
+    }
   }  
 
   # Choose unique identifier for sitegroups (prefer 'node', fall back to 'name')
   my $sitegroup_key_field = undef;
   my $sitegroup_key_value = undef;
-  if (defined $sitegroup->{'node'}) {
-    $sitegroup_key_field = 'node';
-    $sitegroup_key_value = $sitegroup->{$sitegroup_key_field};
-    delete $sitegroup->{'node'};
-  } elsif (defined $sitegroup->{'name'}) {
-    $sitegroup_key_field = 'name';
-    $sitegroup_key_value = $sitegroup->{$sitegroup_key_field};
-    delete $sitegroup->{'name'};
-  }
+  if ($sitegroup) {
+    if (defined $sitegroup->{'node'}) {
+      $sitegroup_key_field = 'node';
+      $sitegroup_key_value = $sitegroup->{$sitegroup_key_field};
+      delete $sitegroup->{'node'};
+    } elsif (defined $sitegroup->{'name'}) {
+      $sitegroup_key_field = 'name';
+      $sitegroup_key_value = $sitegroup->{$sitegroup_key_field};
+      delete $sitegroup->{'name'};
+    }
   
-  if ($sitegroup && (!defined $sitegroup_key_field && !defined $sitegroup_key_value)) {
-    $self->render( text => "You have selected to import sitegroups but a required identifier is missing" );
-    return;
+    if (!defined $sitegroup_key_field && !defined $sitegroup_key_value) {
+      $self->render( text => "You have selected to import sitegroups but a required identifier is missing" );
+      return;
+    }
   }  
-  
-
   
   Mojo::IOLoop->delay(
     sub {
@@ -672,13 +680,6 @@ sub import_loop {
         if ($res->last_insert_id) {
           $site_id = $res->last_insert_id;
           $self->write_chunk('successfully inserted site with id: '.$site_id."<BR>\n");
-        } else {
-          # Insert failed. Find the conflicting record.
-          $self->write_chunk("Duplicate entry? Update existing site instead<BR>\n");
-          $can_pass = 0;
-          my $statement = "SELECT id FROM sites WHERE $site_key_field = $site_key_value"; # These variables are safe
-          $self->write_chunk('sql: '.$statement."<BR>\n");
-          $db->query($statement, $delay->begin);
         }
       }
 
@@ -703,52 +704,71 @@ sub import_loop {
         }
       }
       
+      if ($site && !$site_id) {
+        # Insert failed. Find the conflicting record.
+        $self->write_chunk("Duplicate entry? Update existing site instead<BR>\n");
+        $can_pass = 0;
+        my $statement = "SELECT id FROM sites WHERE $site_key_field = $site_key_value"; # These variables are safe
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $delay->begin);
+      }
+
+      if ($sitegroup && !$sitegroup_id) {
+        # Insert failed. Find the conflicting record.
+        $self->write_chunk("Duplicate entry? Update existing sitegroup instead<BR>\n");
+        $can_pass = 0;
+        my $statement = "SELECT id FROM sitegroups WHERE $sitegroup_key_field = $sitegroup_key_value"; # These variables are safe
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $delay->begin);
+      }
       $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
     },
     sub {
       my $delay = shift;
       my $can_pass = 1; # Set to 0 if we need to do a follow-up query
 
-      if ($site) {
-        unless ($site_id) {
-          my $err = shift;
-          my $res = shift;
-          die $err if $err;
-          my $hashref = $res->hashes->first;
-          $site_id = $hashref->{'id'};
-          # We are here because insert failed and we need to update an existing record. Do so now.
-          $can_pass = 0;
-          my @fields = sort keys %{$site};
-          #my @values = @{$site}{@fields};
-          my $statement = "
-            UPDATE sites
-            SET ".join(',',map { $_.'='.$site->{$_} } @fields)."
-            WHERE id = $site_id
-          ";
-          $self->write_chunk('sql: '.$statement."<BR>\n");
-          $db->query($statement, $delay->begin);
-        }
+      my $site_hashref = undef;
+      if ($site && !$site_id) {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $site_hashref = $res->hashes->first;
+      }
+ 
+      my $sitegroup_hashref = undef;
+      if ($sitegroup && !$sitegroup_id) {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $sitegroup_hashref = $res->hashes->first;
       }
 
-      if ($sitegroup) {
-        unless ($sitegroup_id) {
-          my $err = shift;
-          my $res = shift;
-          die $err if $err;
-          my $hashref = $res->hashes->first;
-          $sitegroup_id = $hashref->{'id'};
-          # We are here because insert failed and we need to update an existing record. Do so now.
-          $can_pass = 0;
-          my @fields = sort keys %{$sitegroup};
-          #my @values = @{$sitegroup}{@fields};
-          my $statement = "
-            UPDATE sitegroups
-            SET ".join(',',map { $_.'='.$sitegroup->{$_} } @fields)."
-            WHERE id = $sitegroup_id
-          ";
-          $self->write_chunk('sql: '.$statement."<BR>\n");
-          $db->query($statement, $delay->begin);
-        }
+      if ($site && !$site_id) {
+        # We are here because insert failed and we need to update an existing record. Do so now.
+        $can_pass = 0;
+        my @fields = sort keys %{$site};
+        #my @values = @{$site}{@fields};
+        my $statement = "
+          UPDATE sites
+          SET ".join(',',map { $_.'='.$site->{$_} } @fields)."
+          WHERE id = ".int($site_hashref->{'id'})."
+        ";
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $delay->begin);
+      }
+ 
+      if ($sitegroup && !$sitegroup_id) {
+        # We are here because insert failed and we need to update an existing record. Do so now.
+        $can_pass = 0;
+        my @fields = sort keys %{$sitegroup};
+        #my @values = @{$sitegroup}{@fields};
+        my $statement = "
+          UPDATE sitegroups
+          SET ".join(',',map { $_.'='.$sitegroup->{$_} } @fields)."
+          WHERE id = ".int($sitegroup_hashref->{'id'})."
+        ";
+        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $db->query($statement, $delay->begin);
       }
 
       $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
