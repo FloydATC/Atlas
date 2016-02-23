@@ -707,7 +707,7 @@ sub import_loop {
         }
       }
       
-      if (keys %{$site} && !$site_id) {
+      if ($site && !$site_id) {
         # Insert failed. Find the conflicting record.
         $self->write_chunk("Update existing site instead<BR>\n");
         $can_pass = 0;
@@ -716,7 +716,7 @@ sub import_loop {
         $db->query($statement, $delay->begin);
       }
 
-      if (keys %{$sitegroup} && !$sitegroup_id) {
+      if ($sitegroup && !$sitegroup_id) {
         # Insert failed. Find the conflicting record.
         $self->write_chunk("Update existing sitegroup instead<BR>\n");
         $can_pass = 0;
@@ -731,7 +731,7 @@ sub import_loop {
       my $can_pass = 1; # Set to 0 if we need to do a follow-up query
 
       my $site_hashref = undef;
-      if (keys %{$site} && !$site_id) {
+      if ($site && !$site_id) {
         my $err = shift;
         my $res = shift;
         die $err if $err;
@@ -739,7 +739,7 @@ sub import_loop {
       }
  
       my $sitegroup_hashref = undef;
-      if (keys %{$sitegroup} && !$sitegroup_id) {
+      if ($sitegroup && !$sitegroup_id) {
         my $err = shift;
         my $res = shift;
         die $err if $err;
@@ -754,7 +754,7 @@ sub import_loop {
         my $statement = "
           UPDATE sites
           SET ".join(',',map { $_.'='.$site->{$_} } @fields)."
-          WHERE id = ".int($site_hashref->{'id'})."
+          WHERE id = ".int($site_hashref->{'id'} || 0)."
         ";
         $self->write_chunk('sql: '.$statement."<BR>\n");
         $db->query($statement, $delay->begin);
@@ -768,7 +768,7 @@ sub import_loop {
         my $statement = "
           UPDATE sitegroups
           SET ".join(',',map { $_.'='.$sitegroup->{$_} } @fields)."
-          WHERE id = ".int($sitegroup_hashref->{'id'})."
+          WHERE id = ".int($sitegroup_hashref->{'id'} || 0)."
         ";
         $self->write_chunk('sql: '.$statement."<BR>\n");
         $db->query($statement, $delay->begin);
