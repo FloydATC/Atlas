@@ -1,6 +1,7 @@
 
 clean:
 	find . -name '*~' -type f -delete
+	-rm log/*
 
 test:
 	script/atlas test
