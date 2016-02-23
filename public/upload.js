@@ -16,6 +16,11 @@ if (!XMLHttpRequest.prototype.sendAsBinary) {
 var AJAXDestination = '';
 var AJAXSubmit = (function () {
 
+  function ajaxPartial () {
+    var div = document.getElementById(AJAXDestination);
+    div.innerHTML = this.responseText;
+  }
+
   function ajaxSuccess () {
     var div = document.getElementById(AJAXDestination);
     if (div == null) { alert('Element not found: '+AJAXDestination); }
@@ -26,6 +31,7 @@ var AJAXSubmit = (function () {
     var oAjaxReq = new XMLHttpRequest();
     oAjaxReq.submittedData = oData;
     oAjaxReq.onload = ajaxSuccess;
+    oAjaxReq.onprogress = ajaxPartial;
     if (oData.technique === 0) {
       oAjaxReq.open("get", oData.receiver.replace(/(?:\?.*)?$/, oData.segments.length > 0 ? "?" + oData.segments.join("&") : ""), true);
       oAjaxReq.send(null);
