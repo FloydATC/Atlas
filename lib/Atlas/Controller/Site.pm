@@ -474,6 +474,8 @@ sub import {
   my @fields = (
     [ 'sites.name'      => 'site name (unique, required)' ],
     [ 'sites.node'      => 'site node (unique)'           ],
+    [ 'sites.x'         => 'site x-coordinate (optional)' ],
+    [ 'sites.y'         => 'site y-coordinate (optional)' ],
     [ 'sitegroups.name' => 'sitegroup name (optional)'    ],
     [ 'sitegroups.node' => 'sitegroup node (optional)'    ]
   );

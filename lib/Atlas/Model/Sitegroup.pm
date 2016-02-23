@@ -1,13 +1,6 @@
 package Atlas::Model::Sitegroup;
 
 
-sub import_fields {
-  return qw(
-    node
-    name
-  );
-}
-
 sub query_get {
   return "
     SELECT * 

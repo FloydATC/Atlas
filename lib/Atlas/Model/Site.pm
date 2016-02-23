@@ -1,15 +1,6 @@
 package Atlas::Model::Site;
 
 
-sub import_fields {
-  return qw(
-    node
-    name
-  );
-}
-
-            
-            
 sub query_move {
   return "
     UPDATE sites 
