@@ -28,9 +28,11 @@ function svg() {
 }
 
 
-// Shorthand function for addressing the SVG document
+// Shorthand function for addressing the SVG document object
 function svgdoc() {
-  return window.document.getElementById('svg').contentDocument;
+  var svg = window.document.getElementById('svg');
+  if (svg != null) { return svg.contentDocument; }
+  return null;
 }
 
 
@@ -132,7 +134,8 @@ function svg_cancelTimer() {
 
 
 function svg_refresh() {
-  svgdoc().location.reload();
+  var svg = svgdoc();
+  if (svg != null) { svg.location.reload(); }
 }
 
 
