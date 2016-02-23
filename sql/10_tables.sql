@@ -27,11 +27,14 @@ CREATE TABLE `commlinks` (
   `name` varchar(64) DEFAULT '(unnamed)',
   `host1` int(11) NOT NULL,
   `host2` int(11) NOT NULL,
-  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
   `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `node` (`node`)
+  UNIQUE KEY `node` (`node`),
+  KEY `host1` (`host1`),
+  KEY `host2` (`host2`),
+  CONSTRAINT `commlinks_ibfk_2` FOREIGN KEY (`host2`) REFERENCES `hosts` (`id`),
+  CONSTRAINT `commlinks_ibfk_1` FOREIGN KEY (`host1`) REFERENCES `hosts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -79,8 +82,8 @@ CREATE TABLE `hostgroupmembers` (
   `hostgroup` int(11) NOT NULL,
   UNIQUE KEY `hostgroupmembers` (`host`,`hostgroup`),
   KEY `hostgroup` (`hostgroup`),
-  CONSTRAINT `hostgroupmembers_ibfk_2` FOREIGN KEY (`hostgroup`) REFERENCES `hostgroups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `hostgroupmembers_ibfk_1` FOREIGN KEY (`host`) REFERENCES `hosts` (`id`) ON DELETE CASCADE
+  CONSTRAINT `hostgroupmembers_ibfk_2` FOREIGN KEY (`hostgroup`) REFERENCES `hostgroups` (`id`),
+  CONSTRAINT `hostgroupmembers_ibfk_1` FOREIGN KEY (`host`) REFERENCES `hosts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -104,14 +107,13 @@ CREATE TABLE `hostgroups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
   `site` int(11) NOT NULL,
-  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
   `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_site` (`name`,`site`),
   UNIQUE KEY `node` (`node`),
   KEY `site` (`site`),
-  CONSTRAINT `hostgroups_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`) ON DELETE CASCADE
+  CONSTRAINT `hostgroups_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -171,7 +173,7 @@ CREATE TABLE `hosts` (
   UNIQUE KEY `node` (`node`),
   KEY `ip` (`ip`),
   KEY `site` (`site`),
-  CONSTRAINT `hosts_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`) ON DELETE CASCADE
+  CONSTRAINT `hosts_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -192,10 +194,10 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
   FOR EACH ROW
   BEGIN
-    IF (NEW.x IS NULL AND NEW.y IS NULL)
+    IF (NEW.x IS NULL AND NEW.y IS NULL) 
     THEN
       SET NEW.x = 100 + RAND()*200;
       SET NEW.y = 100 + RAND()*200;
@@ -242,8 +244,8 @@ CREATE TABLE `sitegroupmembers` (
   `sitegroup` int(11) NOT NULL,
   UNIQUE KEY `sitegroupmembers` (`site`,`sitegroup`),
   KEY `sitegroup` (`sitegroup`),
-  CONSTRAINT `sitegroupmembers_ibfk_2` FOREIGN KEY (`sitegroup`) REFERENCES `sitegroups` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `sitegroupmembers_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`) ON DELETE CASCADE
+  CONSTRAINT `sitegroupmembers_ibfk_2` FOREIGN KEY (`sitegroup`) REFERENCES `sitegroups` (`id`),
+  CONSTRAINT `sitegroupmembers_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -266,7 +268,6 @@ DROP TABLE IF EXISTS `sitegroups`;
 CREATE TABLE `sitegroups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
-  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
   `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -319,7 +320,6 @@ CREATE TABLE `sites` (
   `name` varchar(64) NOT NULL,
   `x` int(11) DEFAULT NULL,
   `y` int(11) DEFAULT NULL,
-  `ip` decimal(5,4) NOT NULL DEFAULT '0.0000',
   `up` decimal(5,4) DEFAULT NULL,
   `node` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -345,10 +345,10 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_site_insert BEFORE INSERT ON sites
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER before_site_insert BEFORE INSERT ON sites
   FOR EACH ROW
   BEGIN
-    IF (NEW.x IS NULL AND NEW.y IS NULL)
+    IF (NEW.x IS NULL AND NEW.y IS NULL) 
     THEN
       SET NEW.x = 100 + RAND()*200;
       SET NEW.y = 100 + RAND()*200;
@@ -419,4 +419,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-02-22 13:49:02
+-- Dump completed on 2016-02-23  4:14:08
