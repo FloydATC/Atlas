@@ -37,8 +37,14 @@ sub map {
         my $res = shift; 
         die $err if $err;
         my $canvas = $res->hashes->first;
-        my $min_w = 1280; if ($canvas->{'width'} < $min_w) { $canvas->{'width'} = $min_w; }
-        my $min_h = 1024; if ($canvas->{'height'} < $min_w) { $canvas->{'height'} = $min_w; }
+        my $min_w = 1280; 
+        my $min_h = 1024; 
+        if (!defined $canvas->{'width'} || $canvas->{'width'} < $min_w) { 
+          $canvas->{'width'} = $min_w; 
+        }
+        if (!defined $canvas->{'height'} || $canvas->{'height'} < $min_w) { 
+          $canvas->{'height'} = $min_w; 
+        }
         $self->stash( width => $canvas->{'width'} );
         $self->stash( height => $canvas->{'height'} );
       };
