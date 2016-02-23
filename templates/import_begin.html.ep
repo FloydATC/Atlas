@@ -24,6 +24,11 @@ Field separator <SELECT name="separator" onchange="AJAXSubmit(this.form, 'previe
 <OPTION value=",">Comma (,)</OPTION>
 </SELECT><BR>
 
+NULL character <SELECT name="null" onchange="AJAXSubmit(this.form, 'preview');">
+<OPTION value="\N">Backslash N (\N)</OPTION>
+<OPTION value="">Empty string</OPTION>
+</SELECT><BR>
+
 Import into <SELECT name="into" onchange="this.form.action='/'+this.value+'/import';AJAXSubmit(this.form, 'preview');">
 <OPTION value="world"></OPTION>
 <OPTION value="site">Sites</OPTION>

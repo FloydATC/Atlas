@@ -474,8 +474,8 @@ sub import {
   my $file = $self->req->upload('file');
   my $separator = $self->param('separator');
   my $skip = $self->param('skip');
+  my $null = $self->param('null');
   my $into = $self->param('into');
-
 
   my @fields = (
     [ 'sites.name'      => 'site name (unique, required)' ],
@@ -495,6 +495,7 @@ sub import {
       while ($skip) { shift @lines; $skip--; }   
       $self->stash( lines => \@lines );
       $self->stash( csv => $csv );
+      $self->stash( errors => 0 );
 
       # Enter non-blocking import loop
       $self->import_loop();
@@ -521,12 +522,13 @@ sub import {
           $error = $csv->error_diag."\n".$csv->error_input;
           last;
         }
-        my @fields = $csv->fields();
+        my @fields = map { ($_ eq $null ? undef : $_) } $csv->fields(); # Null character? -> undef
         push @rows, [ @fields ];
         if (scalar @fields > $cols) { $cols = scalar @fields; }
         foreach my $col (1 .. scalar @fields) {
-          if (!defined $col_width[$col-1] || length($fields[$col-1])/1.5 > $col_width[$col-1]) { 
-            $col_width[$col-1] = length($fields[$col-1])/1.5; 
+          my $len = length($fields[$col-1]) || 0;
+          if (!defined $col_width[$col-1] || $len/1.5 > $col_width[$col-1]) { 
+            $col_width[$col-1] = $len/1.5; 
           }
         }
         $count--;      
@@ -554,13 +556,15 @@ sub import_loop {
   my $self = shift;
 
   my $csv = $self->stash('csv');
+  my $null = $self->param('null');
+  my $errors = $self->stash('errors');
   
   # Get the first line
   my $line = shift @{$self->stash('lines')};
   
   # Are we done?
   unless ($line) {
-    $self->write_chunk("<P><B>Import completed successfully</B></P>");
+    $self->write_chunk("<P><B>Import completed with $errors error".($errors == 1 ? '' : 's')."</B></P>");
     $self->finish(); # Final chunk
     return;
   }
@@ -568,7 +572,7 @@ sub import_loop {
   # Parse line
   my $status = $csv->parse($line);
   last unless $status; # Needs logging and reporting, the user must know what happened. FIXME!
-  my @columns =  $csv->fields();
+  my @columns = map { ($_ eq $null ? undef : $_) } $csv->fields(); # Null character? -> undef
 
   my $db = $self->mysql->db;
   
@@ -688,7 +692,8 @@ sub import_loop {
           if ($err =~ /Duplicate entry/) {
             $self->write_chunk("Site already exists<BR>\n");
           } else {
-            die $err;
+            $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+            $errors++;
           }
         }
         if ($res->last_insert_id) {
@@ -704,7 +709,8 @@ sub import_loop {
           if ($err =~ /Duplicate entry/) {
             $self->write_chunk("Sitegroup already exists<BR>\n");
           } else {
-            die $err;
+            $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+            $errors++;
           }
         }
         if ($res->last_insert_id) {
@@ -740,7 +746,10 @@ sub import_loop {
       if ($site && !$site_id) {
         my $err = shift;
         my $res = shift;
-        die $err if $err;
+        if ($err) {
+          $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+          $errors++;
+        }
         $site_hashref = $res->hashes->first;
       }
  
@@ -748,7 +757,10 @@ sub import_loop {
       if ($sitegroup && !$sitegroup_id) {
         my $err = shift;
         my $res = shift;
-        die $err if $err;
+        if ($err) {
+          $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+          $errors++;
+        }
         $sitegroup_hashref = $res->hashes->first;
       }
 
@@ -805,6 +817,7 @@ sub import_loop {
 
       # Loop. Looks recursive but does not stack because we are inside a Mojo::IOLoop
       $self->write_chunk("<HR>\n");
+      $self->stash( 'errors' => $errors );
       $self->import_loop(); 
     }
   ); 
