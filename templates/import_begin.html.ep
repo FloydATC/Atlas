@@ -7,41 +7,84 @@
   enctype="multipart/form-data" 
   onsubmit="AJAXSubmit(this, 'preview'); return false;">
 
-File name <INPUT type="file" name="file" onchange="AJAXSubmit(this.form, 'preview');"><BR>
+<TABLE class="import">
 
-File format preset <SELECT name="preset" onchange="AJAXSubmit(this.form, 'preview');">
+<TR>
+<TH>File name</TH>
+<TD><INPUT type="file" name="file" onchange="AJAXSubmit(this.form, 'preview');"></TD>
+<TD>Please select a local CSV file to upload and import.</TD>
+</TR>
+
+<TR>
+<TH>File format preset</TH>
+<TD><SELECT name="preset" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="">(New, please specify)</OPTION>
-</SELECT><INPUT type="text" name="new_preset" value=""><BR>
+</SELECT><BR><INPUT type="text" name="new_preset" value=""></TD>
+<TD>Note: NOT YET IMPLEMENTED! Choose a named set of import settings to use, or save the current settings under a new name.</TD>
+</TR>
 
-Skip header lines <SELECT name="skip" onchange="AJAXSubmit(this.form, 'preview');">
+<TR>
+<TH>Skip header lines</TH>
+<TD><SELECT name="skip" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="0">0 lines</OPTION>
 <OPTION value="1">1 line</OPTION>
 <OPTION value="2">2 lines</OPTION>
-</SELECT><BR>
+</SELECT></TD>
+<TD>If your file has a header and/or separator line, choose how many lines to skip.</TD>
+</TR>
 
-Field separator <SELECT name="separator" onchange="AJAXSubmit(this.form, 'preview');">
+<TR>
+<TH>Field separator</TH>
+<TD><SELECT name="separator" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value=";">Semicolon (;)</OPTION>
 <OPTION value=",">Comma (,)</OPTION>
-</SELECT><BR>
+</SELECT></TD>
+<TD>CSV fields are usually separated by a comma or semicolon. If incorrect, parsing will fail completely.</TD>
+</TR>
 
-NULL character <SELECT name="null" onchange="AJAXSubmit(this.form, 'preview');">
+<TR>
+<TH>NULL character</TH>
+<TD><SELECT name="null" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="\N">Backslash N (\N)</OPTION>
 <OPTION value="">Empty string</OPTION>
-</SELECT><BR>
+</SELECT></TD>
+<TD>Matching fields will be imported as containing NULL (undefined). Hint: MySQL uses Backslash N.</TD>
+</TR>
 
-Show <SELECT name="debug" onchange="AJAXSubmit(this.form, 'preview');">
+<TR>
+<TH>Show</TH>
+<TD><SELECT name="debug" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="0">Summary only</OPTION>
 <OPTION value="1">Errors</OPTION>
 <OPTION value="2">SQL statements and errors</OPTION>
 <OPTION value="3">Full debug output</OPTION>
-</SELECT><BR>
+</SELECT></TD>
+<TD>Note: Full debug output may cause performance issues and is only recommended for testing with small data sets.</TD>
+</TR>
 
-Import into <SELECT name="into" onchange="this.form.action='/'+this.value+'/import';AJAXSubmit(this.form, 'preview');">
+<TR>
+<TH>Import into</TH>
+<TD><SELECT name="into" onchange="this.form.action='/'+this.value+'/import';AJAXSubmit(this.form, 'preview');">
 <OPTION value="world"></OPTION>
 <OPTION value="site">Sites</OPTION>
 <OPTION value="host">Hosts</OPTION>
 <OPTION value="commlink">Commlinks</OPTION>
-</SELECT><BR>
+</SELECT></TD>
+<TD>Select what type of entities you want to import. Remember:
+<UL>
+<LI>You must import <em>sites</em> before <em>hosts</em>, and <em>hosts</em> before <em>commlinks</em>.</LI>
+<LI>All <em>hosts</em> must contain a reference to a <em>site</em>.</LI>
+<LI>All <em>commlinks</em> must contain references to exactly two <em>hosts</em>.</LI> 
+<LI>All references may be in the form of a <em>node</em> or a <em>name</em>. The former is preferred.</LI>
+<LI>The <em>node</em>, if used, is expected to be a unique numerical identifier for that type of entity where the data came from.</LI>
+<LI>All <em>sites</em> and <em>hosts</em> must have a unique <em>name</em>, which may be used as a unique identifier if the <em>node</em> is unknown/unavailable.</LI>
+<LI>When importing <em>sites</em> with <em>sitegroups</em>, any existing <em>sitegroup</em> memberships for these <em>sites</em> will be REPLACED.</LI>
+<LI>When importing <em>hosts</em> with <em>hostgroups</em>, any existing <em>hostgroup</em> memberships for these <em>hosts</em> will be REPLACED.</LI>
+</UL>
+</TD>
+</TR>
+
+</TABLE>
 
 <DIV id="preview"></DIV>
 

@@ -21,6 +21,16 @@ TABLE.preview TR.skip TD {
 	background-color: gray;
 }
 
+TABLE.import TH {
+	text-align: left; 
+	vertical-align: top;
+	white-space: nowrap;
+}
+
+TABLE.import TD {
+	vertical-align: top;
+}
+
 DIV.error {
 	border: 1px solid white;
 	background-color: red;
