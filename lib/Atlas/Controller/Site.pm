@@ -498,6 +498,7 @@ sub import {
       $self->stash( errors => 0 );
 
       # Enter non-blocking import loop
+      $self->write_chunk("<P><B>Importing, please wait...</B></P>");
       $self->import_loop();
       return;
     } else {
@@ -557,6 +558,7 @@ sub import_loop {
 
   my $csv = $self->stash('csv');
   my $null = $self->param('null');
+  my $debug = $self->param('debug');
   my $errors = $self->stash('errors');
   
   # Get the first line
@@ -604,8 +606,8 @@ sub import_loop {
   }  
      
   # DEBUG
-  #$self->write_chunk('site: '.Dumper($site)."<BR>\n");
-  #$self->write_chunk('sitegroup: '.Dumper($sitegroup)."<BR>\n");
+  $self->write_chunk('site: '.Dumper($site)."<BR>\n") if $debug >= 3;
+  $self->write_chunk('sitegroup: '.Dumper($sitegroup)."<BR>\n") if $debug >= 3;
 
   my $sitegroup_id = undef;
   my $site_id = undef;
@@ -664,7 +666,7 @@ sub import_loop {
           INSERT INTO sites (".join(',',@fields,$site_key_field).") 
           VALUES (".join(',',@values,$site_key_value).")
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
 
@@ -676,7 +678,7 @@ sub import_loop {
           INSERT INTO sitegroups (".join(',',@fields,$sitegroup_key_field).") 
           VALUES (".join(',',@values,$sitegroup_key_value).")
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       
@@ -690,15 +692,15 @@ sub import_loop {
         my $res = shift;
         if ($err) {
           if ($err =~ /Duplicate entry/) {
-            $self->write_chunk("Site already exists<BR>\n");
+            $self->write_chunk("Site already exists<BR>\n") if $debug >= 3;
           } else {
-            $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+            $self->write_chunk('<DIV class="error">(Site) '.$err.'</DIV>') if $debug >= 1;
             $errors++;
           }
         }
         if ($res->last_insert_id) {
           $site_id = $res->last_insert_id;
-          $self->write_chunk('Successfully inserted site with id: '.$site_id."<BR>\n");
+          $self->write_chunk('Successfully inserted site with id: '.$site_id."<BR>\n") if $debug >= 3;
         }
       }
 
@@ -707,33 +709,33 @@ sub import_loop {
         my $res = shift;
         if ($err) {
           if ($err =~ /Duplicate entry/) {
-            $self->write_chunk("Sitegroup already exists<BR>\n");
+            $self->write_chunk("Sitegroup already exists<BR>\n") if $debug >= 3;
           } else {
-            $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+            $self->write_chunk('<DIV class="error">(Sitegroup) '.$err.'</DIV>') if $debug >= 1;
             $errors++;
           }
         }
         if ($res->last_insert_id) {
           $sitegroup_id = $res->last_insert_id;
-          $self->write_chunk('Successfully inserted sitegroup with id: '.$sitegroup_id."<BR>\n");
+          $self->write_chunk('Successfully inserted sitegroup with id: '.$sitegroup_id."<BR>\n") if $debug >= 3;
         }
       }
       
       if ($site && !$site_id) {
         # Insert failed. Find the conflicting record.
-        $self->write_chunk("Update existing site instead<BR>\n");
+        $self->write_chunk("Update existing site instead<BR>\n") if $debug >= 3;
         $can_pass = 0;
         my $statement = "SELECT id FROM sites WHERE $site_key_field = $site_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
 
       if ($sitegroup && !$sitegroup_id) {
         # Insert failed. Find the conflicting record.
-        $self->write_chunk("Update existing sitegroup instead<BR>\n");
+        $self->write_chunk("Update existing sitegroup instead<BR>\n") if $debug >= 3;
         $can_pass = 0;
         my $statement = "SELECT id FROM sitegroups WHERE $sitegroup_key_field = $sitegroup_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
@@ -747,7 +749,7 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+          $self->write_chunk('<DIV class="error">(Site) '.$err.'</DIV>') if $debug >= 1;
           $errors++;
         }
         $site_hashref = $res->hashes->first;
@@ -758,7 +760,7 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">'.$err.'</DIV>');
+          $self->write_chunk('<DIV class="error">(Sitegroup) '.$err.'</DIV>') if $debug >= 1;
           $errors++;
         }
         $sitegroup_hashref = $res->hashes->first;
@@ -774,7 +776,7 @@ sub import_loop {
           SET ".join(',',map { $_.'='.$site->{$_} } @fields)."
           WHERE id = ".int($site_hashref->{'id'} || 0)."
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
  
@@ -788,7 +790,7 @@ sub import_loop {
           SET ".join(',',map { $_.'='.$sitegroup->{$_} } @fields)."
           WHERE id = ".int($sitegroup_hashref->{'id'} || 0)."
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       
@@ -806,7 +808,7 @@ sub import_loop {
       if ($site_id && $sitegroup_id) {
         $can_pass = 0;
         my $statement = Atlas::Model::Site->query_set_sitegroup();
-        $self->write_chunk('sql: '.$statement."<BR>\n");
+        $self->write_chunk('sql: '.$statement." (with parameters $site_id, $sitegroup_id)<BR>\n") if $debug >= 2;
         $db->query($statement, $site_id, $sitegroup_id, $delay->begin);
       }
        
@@ -816,7 +818,9 @@ sub import_loop {
       my $delay = shift;
 
       # Loop. Looks recursive but does not stack because we are inside a Mojo::IOLoop
-      $self->write_chunk("<HR>\n");
+      $self->write_chunk("<HR>\n") if $debug >= 2;
+      $self->write_chunk("|\n") if $debug < 2;
+      $self->write_chunk("<!-- Processed line: $line  -->\n");
       $self->stash( 'errors' => $errors );
       $self->import_loop(); 
     }

@@ -29,6 +29,13 @@ NULL character <SELECT name="null" onchange="AJAXSubmit(this.form, 'preview');">
 <OPTION value="">Empty string</OPTION>
 </SELECT><BR>
 
+Show <SELECT name="debug" onchange="AJAXSubmit(this.form, 'preview');">
+<OPTION value="0">Summary only</OPTION>
+<OPTION value="1">Errors</OPTION>
+<OPTION value="2">SQL statements and errors</OPTION>
+<OPTION value="3">Full debug output</OPTION>
+</SELECT><BR>
+
 Import into <SELECT name="into" onchange="this.form.action='/'+this.value+'/import';AJAXSubmit(this.form, 'preview');">
 <OPTION value="world"></OPTION>
 <OPTION value="site">Sites</OPTION>
