@@ -136,6 +136,13 @@ sub query_need_check {
   ";
 }   
  
+
+sub query_set_hostgroup {
+  # Replace any hostgroup memberships with just one
+  return "
+    CALL set_hostgroup(?, ?)
+  ";
+}
                        
 return 1;
 

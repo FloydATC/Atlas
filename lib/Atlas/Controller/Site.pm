@@ -589,8 +589,8 @@ sub import_loop {
     }
   } 
   unless ($site) { 
-    $self->stash( error => "Nothing to import. Maybe you should try to select one or more fields?" );
-    $self->render( template => 'import_failed' );
+    $self->write_chunk('<DIV class="error">Nothing to import, please check your field selections.</DIV>');
+    $self->finish(); # Final chunk
     return;
   }
   
@@ -627,8 +627,8 @@ sub import_loop {
     }
   
     if (!defined $site_key_field && !defined $site_key_value) {
-      $self->stash( error => "You have selected to import sites but a required identifier is missing" );
-      $self->render( template => 'import_failed' );
+      $self->write_chunk('<DIV class="error">You have selected to import sites but a required identifier is missing.</DIV>');
+      $self->finish(); # Final chunk
       return;
     }
   }  
@@ -648,8 +648,8 @@ sub import_loop {
     }
   
     if (!defined $sitegroup_key_field && !defined $sitegroup_key_value) {
-      $self->stash( error => "You have selected to import sitegroups but a required identifier is missing" );
-      $self->render( template => 'import_failed' );
+      $self->write_chunk('<DIV class="error">You have selected to import sitegroups but a required identifier is missing.</DIV>');
+      $self->finish(); # Final chunk
       return;
     }
   }  
