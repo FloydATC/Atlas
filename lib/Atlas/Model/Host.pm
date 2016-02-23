@@ -124,15 +124,27 @@ sub query_update_checked {
 
 sub query_need_check {
   # Find hosts that have not been checked in the last 2 minutes
+  my $random = 10+int(rand(90));
   return "
-    SELECT 
-      *,
-      TIMESTAMPDIFF(MINUTE, checked, NOW()) AS _age
-    FROM hosts
-    WHERE ip IS NOT NULL
-    HAVING _age >= 2 OR _age IS NULL
-    ORDER BY _age DESC
-    LIMIT 25
+    (
+      SELECT
+        *,
+        NULL AS _age
+      FROM hosts
+      WHERE ip IS NOT NULL
+      AND checked IS NULL
+      ORDER BY id
+    ) UNION (
+      SELECT
+        *,
+        TIMESTAMPDIFF(MINUTE, checked, NOW()) AS _age
+      FROM hosts
+      WHERE ip IS NOT NULL
+      AND checked IS NOT NULL
+      HAVING _age >= 2
+      ORDER BY _age DESC, id
+    ) 
+    LIMIT $random
   ";
 }   
  

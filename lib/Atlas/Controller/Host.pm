@@ -469,7 +469,6 @@ sub send_echo_request {
         $packet->send if $packet;
       });
 
-
       $db->query(Atlas::Model::Host->query_update_checked, $host->{'id'}, $delay->begin);
     },
     sub {
@@ -617,6 +616,21 @@ sub import_loop {
     $self->finish(); # Final chunk
     return;
   }
+  if ($host->{'ip'}) {
+    # Pay special attention to the IP address, we want to stop garbage right here.
+    my $invalid = 0;
+    unless ($host->{'ip'} =~ /^'\d+\.\d+\.\d+\.\d+'$/) { $invalid = 1; }
+    my @parts = split(/\./, $host->{'ip'});
+    unless (scalar @parts == 4) { $invalid = 1; }
+    foreach my $part (@parts) {
+      $part =~ s/\D//g; # Remove single quotes 
+      if ($part < 0 || $part > 255) { $invalid = 1; }
+    }
+    if ($invalid) {
+      $self->write_chunk('<DIV class="error">Invalid IP address '.$host->{'ip'}.' rejected, replaced with NULL.</DIV>') if $debug >= 1;
+      $host->{'ip'} = 'NULL'; # Remember, this is $db->quote()'d
+    }
+  }
   
   # Find site columns (if any)
   my $site = undef;
@@ -750,8 +764,8 @@ sub import_loop {
       };
       
       # Inject site ID into $host and $hostgroup hashes
-      $host->{'site'} = $site_id;
-      $hostgroup->{'site'} = $site_id;
+      $host->{'site'} = $site_id if $site_id;
+      $hostgroup->{'site'} = $site_id if $site_id && $hostgroup_key_field;
       
       if ($host) {
         # Try a simple INSERT - will fail if any unique key conflicts with an existing record

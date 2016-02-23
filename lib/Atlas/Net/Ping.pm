@@ -7,7 +7,7 @@ sub new {
   my %opt = @_;
 
   unless (valid_ip($opt{'destination'})) {
-    die "Required parameter 'destination' is missing or invalid";
+    die "Required parameter 'destination' has unacceptable value ".(defined $opt{'destination'} ? "'".$opt{'destination'}."'" : 'undef');
     return undef;
   }
   $opt{'id'} = 0 unless defined $opt{'id'} && int($opt{'id'}) eq $opt{'id'} && $opt{'id'} >= 0 && $opt{'id'} <= 65535;
