@@ -779,6 +779,10 @@ sub import_loop {
         $self->write_chunk('sql: '.$statement."<BR>\n");
         $db->query($statement, $delay->begin);
       }
+      
+      # Corner case: We may have looked up records but not performed any updates on them
+      if ($site_hashref->{'id'} && !$site_id) { $site_id = $site_hashref->{'id'}; }
+      if ($sitegroup_hashref->{'id'} && !$sitegroup_id) { $sitegroup_id = $sitegroup_hashref->{'id'}; }
 
       $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
     },
