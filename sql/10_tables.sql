@@ -29,12 +29,14 @@ CREATE TABLE `commlinks` (
   `host2` int(11) NOT NULL,
   `up` decimal(5,4) DEFAULT NULL,
   `node` int(11) DEFAULT NULL,
+  `type` varchar(64) NOT NULL DEFAULT 'Unknown type',
+  `speed` bigint(20) NOT NULL DEFAULT '1073741824',
   PRIMARY KEY (`id`),
   UNIQUE KEY `node` (`node`),
   KEY `host1` (`host1`),
   KEY `host2` (`host2`),
-  CONSTRAINT `commlinks_ibfk_2` FOREIGN KEY (`host2`) REFERENCES `hosts` (`id`),
-  CONSTRAINT `commlinks_ibfk_1` FOREIGN KEY (`host1`) REFERENCES `hosts` (`id`)
+  CONSTRAINT `commlinks_ibfk_1` FOREIGN KEY (`host1`) REFERENCES `hosts` (`id`),
+  CONSTRAINT `commlinks_ibfk_2` FOREIGN KEY (`host2`) REFERENCES `hosts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -194,13 +196,39 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
   FOR EACH ROW
   BEGIN
-    IF (NEW.x IS NULL AND NEW.y IS NULL) 
+    IF (NEW.x IS NULL AND NEW.y IS NULL)
     THEN
       SET NEW.x = 100 + RAND()*200;
       SET NEW.y = 100 + RAND()*200;
+    END IF;
+    IF (NEW.ip = '' OR NEW.ip = '0.0.0.0')
+    THEN
+      SET NEW.ip = NULL;
+    END IF;
+  END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_host_update BEFORE UPDATE ON hosts
+  FOR EACH ROW
+  BEGIN
+    IF (NEW.ip = '' OR NEW.ip = '0.0.0.0')
+    THEN
+      SET NEW.ip = NULL;           
     END IF;
   END */;;
 DELIMITER ;
@@ -419,4 +447,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-02-23  4:14:08
+-- Dump completed on 2016-02-24  9:39:32
