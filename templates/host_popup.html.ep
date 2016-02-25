@@ -1,17 +1,49 @@
 % title 'Host popup';
 % layout 'popup';
 % my $host = $c->stash('host');
-<A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>
-<HR>
-Documentation<BR>
-<A href="javascript:begin_drag_object('host<%= $host->{'id'} %>')">Move...</A><BR>
-<A href="#" onClick="javascript:create_popup('/host/popup_addgroup?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Add group membership &gt;</A><BR>
-<A href="#" onClick="javascript:create_popup('/host/popup_removegroup?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Remove group membership &gt;</A><BR>
-<A href="#" onClick="javascript:create_popup('/host/popup_connecthost?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Connect to host &gt;</A><BR>
-<HR>
+
+<TABLE class="popup">
+
+<TR class="option">
+<TD><A href="/host/details?id=<%= $host->{'id'} %>" class="<%= $host->{'state'} %>"><%= $host->{'name'} %></A></TD>
+<TD><%= $host->{'ip'} || '' %></TD>
+</TR>
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2">Documentation</TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="javascript:begin_drag_object('host<%= $host->{'id'} %>')">Move...</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/host/popup_addgroup?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Add group membership &gt;</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/host/popup_removegroup?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Remove group membership &gt;</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/host/popup_connecthost?host_id=<%= $host->{'id'} %>&site_id=<%= $host->{'site'} %>', event.clientX, event.clientY); return false;">Connect to host &gt;</A></TD>
+</TR>
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
+
 % foreach my $peer (@{$c->stash('peers')}) {
-<A href="/host/map?id=<%= $peer->{'hosts_id'} %>"><%= $peer->{'hosts_name'} %></A> 
-via 
-<A href="/commlink/details?id=<%= $peer->{'commlinks_id'} %>"><%= $peer->{'commlinks_name'} %></A><BR>
+<TR class="option">
+<TD><A href="/host/map?id=<%= $peer->{'hosts_id'} %>" class="<%= $peer->{'hosts_state'} %>"><%= $peer->{'hosts_name'} %></A></TD> 
+<TD>via 
+<A href="/commlink/details?id=<%= $peer->{'commlinks_id'} %>" class="<%= $peer->{'commlinks_state'} %>"><%= $peer->{'commlinks_name'} %></A></TD>
+</TR>
 % } 
 
+</TABLE>

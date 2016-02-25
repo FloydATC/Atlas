@@ -61,7 +61,7 @@ sub query_hostgroups {
     AND hostgroups.id IS NOT NULL
     GROUP BY hostgroups.id
     HAVING members > 0
-    ORDER BY hostgroups.id
+    ORDER BY hostgroups.name, hostgroups.id
   ";
 }
 

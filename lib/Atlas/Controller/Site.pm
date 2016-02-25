@@ -310,12 +310,13 @@ sub popup {
 
   $self->render_later;
   my $db = $self->mysql->db;
-  my $id = $self->param('id');
+  my $site_id = $self->param('id');
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
-      $db->query(Atlas::Model::Site->query_get, $id, $delay->begin);
-      $db->query(Atlas::Model::Site->query_hosts, $id, $delay->begin);
+      $db->query(Atlas::Model::Site->query_get, $site_id, $delay->begin);
+      $db->query(Atlas::Model::Site->query_hostgroups, $site_id, $delay->begin);
+      $db->query(Atlas::Model::Site->query_hosts, $site_id, $delay->begin);
     },
     sub {
       my $delay = shift;
@@ -324,6 +325,12 @@ sub popup {
         my $res = shift;
         die $err if $err;
         $self->stash( site => $res->hashes->first );
+      };
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( hostgroups => $res->hashes->to_array );
       };
       {
         my $err = shift;

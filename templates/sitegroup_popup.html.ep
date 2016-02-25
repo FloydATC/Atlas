@@ -1,15 +1,44 @@
 % title 'Sitegroup popup';
 % layout 'popup';
 % my $sitegroup = $c->stash('sitegroup');
-<A href="/sitegroup/details?id=<%= $sitegroup->{'id'} %>"><%= $sitegroup->{'name'} %></A><BR>
-<HR>
-<A href="javascript:begin_drag_object('sitegroup<%= $sitegroup->{'id'} %>')">Move...</A><BR>
-<A href="#" onClick="javascript:create_popup('/site/popup_new?x='+event.clientX+'&y='+event.clientY+'&sitegroup_id='+<%= $sitegroup->{'id'} %>, event.clientX, event.clientY); return false;">Create new site &gt;</A><BR>
-<A href="#" onClick="javascript:create_popup('/sitegroup/popup_addmember?id='+<%= $sitegroup->{'id'} %>, event.clientX, event.clientY); return false;">Add member site &gt;</A><BR>
-<A href="#" onClick="javascript:create_popup('/sitegroup/popup_removemember?id='+<%= $sitegroup->{'id'} %>, event.clientX, event.clientY); return false;">Remove member site &gt;</A><BR>
-<HR>
+
+<TABLE class="popup">
+
+<TR class="option">
+<TD><A href="/sitegroup/details?id=<%= $sitegroup->{'id'} %>" class="<%= $sitegroup->{'state'} %>"><%= $sitegroup->{'name'} %></A></TD>
+<TD></TD>
+</TR>
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="javascript:begin_drag_object('sitegroup<%= $sitegroup->{'id'} %>')">Move...</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/site/popup_new?x='+event.clientX+'&y='+event.clientY+'&sitegroup_id='+<%= $sitegroup->{'id'} %>, event.clientX, event.clientY); return false;">Create new site &gt;</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/sitegroup/popup_addmember?id='+<%= $sitegroup->{'id'} %>, event.clientX, event.clientY); return false;">Add member site &gt;</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/sitegroup/popup_removemember?id='+<%= $sitegroup->{'id'} %>, event.clientX, event.clientY); return false;">Remove member site &gt;</A></TD>
+</TR>
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
 % foreach my $site (@{$c->stash('sites')}) {
-<A href="/site/map?id=<%= $site->{'id'} %>"><%= $site->{'name'} %></A><BR>
+<TR class="option">
+<TD colspan="2"><A href="/site/map?id=<%= $site->{'id'} %>" class="<%= $site->{'state'} %>"><%= $site->{'name'} %></A></TD>
+</TR>
 % }
+
+</TABLE>
 
 

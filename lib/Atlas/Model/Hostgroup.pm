@@ -3,7 +3,9 @@ package Atlas::Model::Hostgroup;
 
 sub query_get {
   return "
-    SELECT * 
+    SELECT 
+      *,
+      STATE(up) AS state 
     FROM hostgroups
     WHERE id = ?
     ORDER BY name, id
@@ -13,7 +15,9 @@ sub query_get {
 
 sub query_hosts {
   return "
-    SELECT hosts.*
+    SELECT 
+      hosts.*,
+      STATE(hosts.up) AS state
     FROM hosts
     LEFT JOIN hostgroupmembers ON (hostgroupmembers.host = hosts.id)
     LEFT JOIN hostgroups ON (hostgroups.id = hostgroupmembers.hostgroup)

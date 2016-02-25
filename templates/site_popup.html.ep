@@ -1,15 +1,54 @@
 % title 'Site popup';
 % layout 'popup';
 % my $site = $c->stash('site');
-<A href="/site/map?id=<%= $site->{'id'} %>"><%= $site->{'name'} %></A><BR>
-<HR>
-Documentation<BR>
-<A href="javascript:begin_drag_object('site<%= $site->{'id'} %>')">Move...</A><BR>
-<A href="#" onClick="javascript:create_popup('/site/popup_addgroup?id=<%= $site->{'id'} %>', event.clientX, event.clientY); return false;">Add group membership &gt;</A><BR>
-<A href="#" onClick="javascript:create_popup('/site/popup_removegroup?id=<%= $site->{'id'} %>', event.clientX, event.clientY); return false;">Remove group membership &gt;</A><BR>
-<HR>
+
+<TABLE class="popup">
+
+<TR>
+<TH><A href="/site/map?id=<%= $site->{'id'} %>" class="<%= $site->{'state'} %>"><%= $site->{'name'} %></A></TD>
+<TH><%= $site->{'code'} || '' %></TD>
+</TR>
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2">Documentation</TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="javascript:begin_drag_object('site<%= $site->{'id'} %>')">Move...</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/site/popup_addgroup?id=<%= $site->{'id'} %>', event.clientX, event.clientY); return false;">Add group membership &gt;</A></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="#" onClick="javascript:create_popup('/site/popup_removegroup?id=<%= $site->{'id'} %>', event.clientX, event.clientY); return false;">Remove group membership &gt;</A></TD>
+</TR>
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
+% foreach my $hostgroup (@{$c->stash('hostgroups')}) {
+<TR class="option">
+<TD colspan="2"><A href="/hostgroup/details?id=<%= $hostgroup->{'id'} %>" class="<%= $hostgroup->{'state'} %>"><%= $hostgroup->{'name'} %></A></TD>
+</TR>
+% }
+
+<TR class="divider">
+<TD colspan="2"><DIV /></TD>
+</TR>
+
 % foreach my $host (@{$c->stash('hosts')}) {
-<A href="/host/details?id=<%= $host->{'id'} %>"><%= $host->{'name'} %></A><BR>
+<TR class="option">
+<TD><A href="/host/details?id=<%= $host->{'id'} %>" class="<%= $host->{'state'} %>"><%= $host->{'name'} %></A></TD>
+<TD><%= $host->{'ip'} || '' %></TD>
+</TR>
 % }
 
 
+</TABLE>

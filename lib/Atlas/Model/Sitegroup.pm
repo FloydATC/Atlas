@@ -3,7 +3,9 @@ package Atlas::Model::Sitegroup;
 
 sub query_get {
   return "
-    SELECT * 
+    SELECT 
+      *,
+      STATE(up) AS state 
     FROM sitegroups
     WHERE id = ?
     ORDER BY id
@@ -14,7 +16,9 @@ sub query_get {
 
 sub query_find {
   return "
-    SELECT * 
+    SELECT 
+      *,
+      STATE(up) AS state 
     FROM sitegroups
     WHERE name LIKE ?
     ORDER BY id
@@ -36,7 +40,9 @@ sub query_move {
 
 sub query_sites {
   return "
-    SELECT sites.*
+    SELECT 
+      sites.*,
+      STATE(sites.up) AS state
     FROM sites
     LEFT JOIN sitegroupmembers ON (sitegroupmembers.site = sites.id)
     LEFT JOIN sitegroups ON (sitegroups.id = sitegroupmembers.sitegroup)

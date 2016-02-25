@@ -30,7 +30,8 @@ sub query_peers {
       hosts.name AS hosts_name,
       STATE(hosts.up) AS hosts_state,
       commlinks.id AS commlinks_id,
-      commlinks.name AS commlinks_name
+      commlinks.name AS commlinks_name,
+      STATE(commlinks.up) AS commlinks_state
     FROM hosts, commlinks
     WHERE (commlinks.host1 = hosts.id OR commlinks.host2 = hosts.id)
     AND (commlinks.host1 = ? OR commlinks.host2 = ?)

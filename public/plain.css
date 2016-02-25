@@ -8,7 +8,11 @@ BODY {
 DIV.popup {
 	background-color: #DFDFFF;
 	min-width: 200px;
-	border: 1px solid red;
+	border: 2px outset gray;
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 2px;
+	padding-bottom: 2px;
 }
 
 TABLE.preview TR TD {
@@ -29,6 +33,43 @@ TABLE.import TH {
 
 TABLE.import TD {
 	vertical-align: top;
+}
+
+TABLE.popup {
+	border: none;
+	border-collapse: collapse;	
+	width: 100%;
+}
+
+TABLE.popup TR.option:hover {
+	background-color: lightgray;
+}
+
+TABLE.popup TH {
+	text-align: left;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+TABLE.popup TD {
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+TABLE.popup TR.divider TD {
+	padding: 0px;
+	height: 7px;
+	vertical-align: middle;
+}
+
+TABLE.popup TR.divider DIV {
+	background-color: gray;
+	height: 1px;
+	border: none;
 }
 
 DIV.error {
@@ -53,4 +94,31 @@ DIV#progressbar DIV#right {
 	background-color: white;
 	height: 60px;
 }
+
+A	{
+	text-decoration: none;
+	font-weight: 600;
+	color: black;
+}
+
+A:hover	{
+	text-decoration: underline;
+}
+
+A.alive {
+	color: darkgreen;
+}
+
+A.warning {
+	color: #FF8C00;
+}
+
+A.dead {
+	color: red;
+}
+
+A.unknown {
+	color: #404040; 
+}
+
 
