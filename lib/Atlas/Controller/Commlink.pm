@@ -278,14 +278,14 @@ sub import_loop {
       {
         # Look up ID for host 1
         my $statement = "SELECT id FROM hosts WHERE $host1_key_field = $host1_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       };
 
       {
         # Look up ID for host 2
         my $statement = "SELECT id FROM hosts WHERE $host2_key_field = $host2_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       };
       
@@ -298,13 +298,15 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">(Host 1) '.$err.'</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">(Host 1) '.$err.'</DIV>')) if $debug >= 1;
+          $errors++;
         }
         my $host1_hashref = $res->hashes->first;
         if ($host1_hashref && $host1_hashref->{'id'}) {
           $host1_id = $host1_hashref->{'id'};
         } else {
-          $self->write_chunk('<DIV class="error">Host 1 lookup failed, $host1_key_field $host1_key_value not found.</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">Host 1 lookup failed, '.$host1_key_field.' '.$host1_key_value.' not found.</DIV>')) if $debug >= 1;
+          $errors++;
         }
       };
 
@@ -313,19 +315,22 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">(Host 2) '.$err.'</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">(Host 2) '.$err.'</DIV>')) if $debug >= 1;
+          $errors++;
         }
         my $host2_hashref = $res->hashes->first;
         if ($host2_hashref && $host2_hashref->{'id'}) {
           $host2_id = $host2_hashref->{'id'};
         } else {
-          $self->write_chunk('<DIV class="error">Host 2 lookup failed, $host2_key_field $host2_key_value not found.</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">Host 2 lookup failed, '.$host2_key_field.' '.$host2_key_value.' not found.</DIV>')) if $debug >= 1;
+          $errors++;
         }
       };
       
       # Update $commlink hash with ID for host1 and host2
-      $commlink->{'host1'} = $host1_id;
-      $commlink->{'host2'} = $host2_id;
+      # Note: undefined -> 'NULL' will cause query to fail, this is just to handle failed lookups with grace
+      $commlink->{'host1'} = $host1_id || 'NULL';
+      $commlink->{'host2'} = $host2_id || 'NULL';
       
       {
         # Try a simple INSERT - will fail if any unique key conflicts with an existing record
@@ -353,7 +358,8 @@ sub import_loop {
           if ($err =~ /Duplicate entry/) {
             $self->write_chunk('Insert failed') if $debug >= 3;
           } else {
-            $self->write_chunk('<DIV class="error">(Commlink) '.$err.'</DIV>') if $debug >= 1;
+            $self->write_chunk(encode("UTF-8", '<DIV class="error">(Commlink) '.$err.'</DIV>')) if $debug >= 1;
+            $errors++;
           }
         } else {
           $commlink_id = $res->last_insert_id;
@@ -367,7 +373,7 @@ sub import_loop {
         $self->write_chunk("Update existing commlink instead<BR>\n") if $debug >= 3;
         $can_pass = 0;
         my $statement = "SELECT id FROM commlinks WHERE $commlink_key_field = $commlink_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       
@@ -383,13 +389,15 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">(Commlink) '.$err.'</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">(Commlink) '.$err.'</DIV>')) if $debug >= 1;
+          $errors++;
         }
         my $commlink_hashref = $res->hashes->first;
         if ($commlink_hashref && $commlink_hashref->{'id'}) {
           $commlink_hashref = $commlink_hashref;
         } else {
-          $self->write_chunk('<DIV class="error">Commlink lookup failed, $commlink_key_field $commlink_key_value not found.</DIV>');
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">Commlink lookup failed, '.$commlink_key_field.' '.$commlink_key_value.' not found.</DIV>')) if $debug >= 1;
+          $errors++;
         }
       }
       
