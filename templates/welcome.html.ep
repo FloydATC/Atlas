@@ -1,0 +1,62 @@
+% title 'Welcome';
+% layout 'plain';
+%= include 'menu'
+
+<H2>Welcome to Atlas version 4</H2>
+
+<H3>Background</H3>
+
+<P>
+Atlas version 1 is a web based tool for mapping and monitoring network assets. It was originally 
+written in 2009 and has been continuously improved upon since then. 
+It can also perform various related tasks such as auto-configuring of common settings on Cisco
+and Juniper devices, collect syslogs and SNMP traps, perform scheduled backups, collect MAC 
+addresses, port descriptions, CDP neighbour tables and tons of other information. 
+Finally, Atlas version 1 has a highly developed method of collecting and summarizing alerts which
+can be sent out via email and text messages to alert group members based on priority levels 
+and time/weekday schedules.
+</P>
+
+<P>
+However, it soon became clear that some fundamental design flaws existed in Atlas version 1 
+which prevent the proper implementation of certain features that we really want to see, such as
+allowing dynamic flow of information from Atlas and back into 3rd party systems.
+</P>
+
+<P>
+There have been two previous attempts at rewriting Atlas from scratch, both of these have 
+been unsuccessful because we have been unable to improve upon the fundamental design flaws 
+in version 1 without incurring severe performance penalties or ridiculous code complexity.
+In short, development of versions 2 and 3 stalled because they failed to improve upon version 1.
+</P>
+
+<H3>Current state</H3>
+
+<P>
+Atlas version 4 is an attempt to re-implement Atlas version 1 using Mojolicious, a next-gen
+web application framework written in Perl, based on the idea of non-blocking IO.
+If none of this makes any sense to you, then this is probably not the web page you were looking for.
+</P>
+
+<P>
+Please understand that this is a highly experimental web application in early development.
+The entire database is purged several times per day so feel free to play with it.
+The source code is hosted on Github and I try to update it atleast once a day when playing with it.
+Lots of links are broken, don't even bother reporting those.
+I'm still learning Mojolicious, this will be painfully obvious to anyone who is more familiar with it.
+Suggestions on code improvements are more than welcome but I'm really not used to dealing with 
+Pull Requests etc. so please be patient.
+</P>
+
+<P>
+Thank you for your time,
+</P>
+
+<P>
+<A href="mailto:floyd@atc.no">floyd@atc.no</A>
+</P>
+
+<HR>
+
+ 
+

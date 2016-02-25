@@ -30,6 +30,7 @@ sub startup {
   $self->helper( config => sub { $config } );
 
   my $r = $self->routes;
+  $r->get('/')->to(controller => 'World', action => 'welcome');
   $r->get('/world')->to(controller => 'World', action => 'welcome');
   $r->get('/world/map')->to(controller => 'World', action => 'map');
   $r->get('/world/import_begin')->to(controller => 'World', action => 'import_begin');

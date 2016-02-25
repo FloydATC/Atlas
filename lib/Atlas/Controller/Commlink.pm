@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Controller';
 
 use Text::CSV_XS;
 use Data::Dumper;
+use Encode;
 
 # Action
 sub welcome {
@@ -69,7 +70,7 @@ sub import {
   # Did we actually receive a file?
   if ($file) {
     my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, sep_char => $separator });
-    my @lines = split(/[\r\n]+/, $file->slurp);
+    my @lines = map { decode("UTF-8", $_) } split(/[\r\n]+/, $file->slurp);
     if ($self->param('execute')) {
       # Execute import
       while ($skip) { shift @lines; $skip--; }   
@@ -157,6 +158,7 @@ sub import_loop {
   my @columns = map { ($_ eq $null ? undef : $_) } $csv->fields(); # Null character? -> undef
 
   my $db = $self->mysql->db;
+  #$db->query("SET character_set_client = utf8");
   
   # Find commlink columns (if any)
   my $commlink = undef;
@@ -333,7 +335,8 @@ sub import_loop {
           INSERT INTO commlinks (".join(',',@fields,$commlink_key_field).") 
           VALUES (".join(',',@values,$commlink_key_value).")
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
+        #$db->query(utf8::upgrade($statement), $delay->begin);
         $db->query($statement, $delay->begin);
       };
       
@@ -375,6 +378,7 @@ sub import_loop {
       my $can_pass = 1; # Set to 0 if we need to do a follow-up query 
       
       # Lookup successful?
+      my $commlink_hashref = undef;
       if ($commlink && !$commlink_id) { 
         my $err = shift;
         my $res = shift;
@@ -383,14 +387,14 @@ sub import_loop {
         }
         my $commlink_hashref = $res->hashes->first;
         if ($commlink_hashref && $commlink_hashref->{'id'}) {
-          $commlink_id = $commlink_hashref->{'id'};
+          $commlink_hashref = $commlink_hashref;
         } else {
           $self->write_chunk('<DIV class="error">Commlink lookup failed, $commlink_key_field $commlink_key_value not found.</DIV>');
         }
       }
       
       # Update existing commlink
-      if (keys %{$commlink} && $commlink_id) {
+      if (keys %{$commlink} && !$commlink_id) {
         # We are here because insert failed and we need to update an existing record. Do so now.
         $can_pass = 0;
         my @fields = sort keys %{$commlink};
@@ -398,9 +402,10 @@ sub import_loop {
         my $statement = "
           UPDATE commlinks
           SET ".join(',',map { $_.'='.$commlink->{$_} } @fields)."
-          WHERE id = ".int($commlink_id)."
+          WHERE id = ".int($commlink_hashref->{'id'} || 0)."
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
+#        $db->query(utf8::upgrade($statement), $delay->begin);
         $db->query($statement, $delay->begin);
       }
       
@@ -412,7 +417,7 @@ sub import_loop {
       # Loop. Looks recursive but does not stack because we are inside a Mojo::IOLoop
       $self->write_chunk("<HR>\n") if $debug >= 2;
       $self->write_chunk("|\n") if $debug < 2;
-      $self->write_chunk("<!-- Processed line: $line  -->\n");
+      $self->write_chunk(encode("UTF-8", "<!-- Processed line: $line  -->\n"));
       $self->stash( 'errors' => $errors );
       $self->import_loop(); 
     }

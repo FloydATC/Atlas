@@ -10,7 +10,7 @@ sub welcome {
   my $self = shift;
 
   # Render response
-  $self->render( text => 'Hello there.' );
+  $self->render( template => 'welcome' );
 }
 
 sub import_begin {
