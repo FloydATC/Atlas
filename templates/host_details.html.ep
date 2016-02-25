@@ -1,0 +1,22 @@
+% title 'Host';
+% layout 'plain';
+% my $host = $c->stash('host');
+%= include 'menu'
+
+This is host <%= $host->{'id'} %> "<%= $host->{'name'} %>"<P>
+
+(Link to site map goes here)
+<P>
+
+(Edit form goes here)
+<P>
+
+(List of host group(s) goes here)
+<P>
+
+(Detailed list of peer hosts goes here)
+<P>
+
+(Maybe tabs for the more detailed stuff such as interfaces, config backups etc?)
+<P>
+

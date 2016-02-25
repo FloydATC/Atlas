@@ -6,12 +6,16 @@
 <TABLE class="popup">
 
 <TR class="option">
-<TD><A href="/hostgroup/details?id=<%= $hostgroup->{'id'} %>" class="<%= $hostgroup->{'state'} %>"><%= $hostgroup->{'name'} %></A></TD>
+<TD><A href="/hostgroup/details?hostgroup_id=<%= $hostgroup->{'id'} %>" class="<%= $hostgroup->{'state'} %>"><%= $hostgroup->{'name'} %></A></TD>
 <TD></TD>
 </TR>
 
 <TR class="divider">
 <TD colspan="2"><DIV /></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="/hostgroup/details?hostgroup_id=<%= $hostgroup->{'id'} %>">Details</A></TD>               
 </TR>
 
 <TR class="option">
@@ -36,7 +40,7 @@
 
 % foreach my $host (@{$c->stash('hosts')}) {
 <TR>
-<TD><A href="/host/details?id=<%= $host->{'id'} %>" class="<%= $host->{'state'} %>"><%= $host->{'name'} %></A></TD>
+<TD><A href="/host/details?host_id=<%= $host->{'id'} %>" class="<%= $host->{'state'} %>"><%= $host->{'name'} %></A></TD>
 <TD></TD>
 </TR>
 % }

@@ -11,6 +11,35 @@ sub welcome {
   $self->render( text => 'Hello there.' );
 }
 
+sub details {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $sitegroup_id = $self->param('sitegroup_id');
+  unless ($sitegroup_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); }
+
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Sitegroup->query_get, $sitegroup_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( sitegroup => $res->hashes->first );
+      };
+
+      # Render response
+      $self->render( template => 'sitegroup_details', type => 'html', format => 'html' );
+    }
+  )->wait;
+
+}
+
 sub move {
   my $self = shift;
 

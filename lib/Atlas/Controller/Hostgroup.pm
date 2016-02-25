@@ -11,6 +11,35 @@ sub welcome {
   $self->render( text => 'Hello there.' );
 }
 
+sub details {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $hostgroup_id = $self->param('hostgroup_id');
+  unless ($hostgroup_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); }
+
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Hostgroup->query_get, $hostgroup_id, $delay->begin);
+    },   
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift; 
+        my $res = shift; 
+        die $err if $err;
+        $self->stash( hostgroup => $res->hashes->first );
+      };
+
+      # Render response
+      $self->render( template => 'hostgroup_details', type => 'html', format => 'html' );
+    }
+  )->wait;
+ 
+}
+
 sub move {
   my $self = shift;
 
@@ -98,7 +127,7 @@ sub addmember {
 
       # Render response
       $self->flash(message => 'Host added to group');
-      $self->redirect_to("/site/map?id=$site_id");
+      $self->redirect_to("/site/map?site_id=$site_id");
     }
   )->wait;
 }
@@ -128,7 +157,7 @@ sub removemember {
 
       # Render response
       $self->flash(message => 'Host removed from group');
-      $self->redirect_to("/site/map?id=$site_id");
+      $self->redirect_to("/site/map?site_id=$site_id");
     }
   )->wait;
 }

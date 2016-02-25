@@ -29,15 +29,18 @@ sub query_peers {
       hosts.id AS hosts_id,
       hosts.name AS hosts_name,
       STATE(hosts.up) AS hosts_state,
+      sites.id AS sites_id,
+      sites.name AS sites_name,
+      STATE(sites.up) AS sites_state,
       commlinks.id AS commlinks_id,
       commlinks.name AS commlinks_name,
       STATE(commlinks.up) AS commlinks_state
-    FROM hosts, commlinks
-    WHERE (commlinks.host1 = hosts.id OR commlinks.host2 = hosts.id)
-    AND (commlinks.host1 = ? OR commlinks.host2 = ?)
-    AND hosts.id != ?
-    ORDER BY hosts.name, hosts.id
-  ";
+    FROM commlinks
+    INNER JOIN hosts ON (hosts.id = commlinks.host1 OR hosts.id = commlinks.host2)
+    LEFT JOIN sites ON (sites.id = hosts.site)
+    WHERE host1 = ? OR host2 = ?
+    HAVING hosts_id != ?
+";
 }
 
 

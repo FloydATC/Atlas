@@ -14,6 +14,37 @@ sub welcome {
 }
 
 
+sub details {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $commlink_id = $self->param('commlink_id');
+  unless ($commlink_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
+
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Commlink->query_get, $commlink_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( commlink => $res->hashes->first );
+      };
+
+      # Render response
+      $self->render( template => 'commlink_details', type => 'html', format => 'html' );
+    }
+  )->wait;
+ 
+}
+ 
+
+
 sub insert {
   my $self = shift;
 
@@ -41,7 +72,7 @@ sub insert {
 
       # Render response
       $self->flash(message => 'Commlink created');
-      $self->redirect_to("/site/map?id=".$site_id);
+      $self->redirect_to("/site/map?site_id=".$site_id);
     }
   )->wait;
 }

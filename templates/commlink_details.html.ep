@@ -1,0 +1,16 @@
+% title 'Commlink';
+% layout 'plain';
+% my $commlink = $c->stash('commlink');
+%= include 'menu'
+
+This is commlink <%= $commlink->{'id'} %> "<%= $commlink->{'name'} %>"<P>
+
+(Link to site map goes here)
+<P>
+
+(Edit form goes here)
+<P>
+
+(Detailed list of hosts goes here)
+<P>
+

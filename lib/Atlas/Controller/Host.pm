@@ -15,6 +15,35 @@ sub welcome {
   $self->render( text => 'Hello there.' );
 }
 
+sub details {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $host_id = $self->param('host_id');
+  unless ($host_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
+
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Host->query_get, $host_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( host => $res->hashes->first );
+      };
+
+      # Render response
+      $self->render( template => 'host_details', type => 'html', format => 'html' );
+    }
+  )->wait;
+ 
+}
+
 sub move {
   my $self = shift;
 
@@ -54,7 +83,7 @@ sub insert {
   my $name = $self->param('name');
   unless ($name) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
   my $ip = $self->param('ip');
-  my $site = $self->param('site'); # Site ID
+  my $site_id = $self->param('site'); # Site ID
   my $hostgroup_name = $self->param('hostgroup') || undef; # Note: Treat blank string as NULL
   my $x = $self->param('x');
   my $y = $self->param('y');
@@ -65,9 +94,9 @@ sub insert {
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
-      $db->query(Atlas::Model::Host->query_insert, $name, $ip, $site, $x, $y, $delay->begin);
+      $db->query(Atlas::Model::Host->query_insert, $name, $ip, $site_id, $x, $y, $delay->begin);
       if ($hostgroup_name) {
-        $db->query(Atlas::Model::Hostgroup->query_insert, $site, $hostgroup_name, $delay->begin);
+        $db->query(Atlas::Model::Hostgroup->query_insert, $site_id, $hostgroup_name, $delay->begin);
       }
     },
     sub {
@@ -79,7 +108,7 @@ sub insert {
           # User error - Render response and exit early
           $self->flash(message => 'Host already exists');
           $self->res->code(303); 
-          $self->redirect_to("/site/map?id=".$site);
+          $self->redirect_to("/site/map?site_id=".$site_id);
           return;
         }
         die $err if $err;
@@ -93,7 +122,7 @@ sub insert {
             die $err;
           }
         }
-        $db->query(Atlas::Model::Hostgroup->query_find, $site, $hostgroup_name, $delay->begin);
+        $db->query(Atlas::Model::Hostgroup->query_find, $site_id, $hostgroup_name, $delay->begin);
       } else {
         $delay->pass;
       }
@@ -123,7 +152,7 @@ sub insert {
       # Render response
       $self->flash(message => 'Host created');
       $self->res->code(303); 
-      $self->redirect_to("/site/map?id=".$site);
+      $self->redirect_to("/site/map?site_id=".$site_id);
     }
   )->wait;
 }
@@ -174,7 +203,7 @@ sub addgroup_byname {
       # Render response
       $self->flash(message => 'Hostgroup member added');
       $self->res->code(303);
-      $self->redirect_to("/site/map?id=".$site_id);
+      $self->redirect_to("/site/map?site_id=".$site_id);
     }
   )->wait;
 }
@@ -205,7 +234,7 @@ sub removegroup {
       # Render response
       $self->flash(message => 'Hostgroup member removed');
       $self->res->code(303);
-      $self->redirect_to("/site/map?id=".$site_id);
+      $self->redirect_to("/site/map?site_id=".$site_id);
     }
   )->wait;
 }

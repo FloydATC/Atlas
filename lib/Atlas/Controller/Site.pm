@@ -17,12 +17,12 @@ sub map {
 
   $self->render_later;
   my $db = $self->mysql->db;  
-  my $id = $self->param('id');
+  my $site_id = $self->param('site_id');
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;
-      $db->query(Atlas::Model::Site->query_get, $id, $delay->begin);  
-      $db->query(Atlas::Model::Site->query_dimensions, $id, $delay->begin);  
+      $db->query(Atlas::Model::Site->query_get, $site_id, $delay->begin);  
+      $db->query(Atlas::Model::Site->query_dimensions, $site_id, $delay->begin);  
     },   
     sub {
       my $delay = shift;

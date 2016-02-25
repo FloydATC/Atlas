@@ -1,0 +1,16 @@
+% title 'Hostgroup';
+% layout 'plain';
+% my $hostgroup = $c->stash('hostgroup');
+%= include 'menu'
+
+This is hostgroup <%= $hostgroup->{'id'} %> "<%= $hostgroup->{'name'} %>"<P>
+
+(Link to site map goes here)
+<P>
+
+(Edit form goes here)
+<P>
+
+(Detailed list of hosts goes here)
+<P>
+

@@ -54,11 +54,13 @@ sub startup {
   $r->post('/sitegroup/addmember')->to(controller => 'Sitegroup', action => 'addmember');
   $r->post('/sitegroup/removemember')->to(controller => 'Sitegroup', action => 'removemember');
   $r->get('/sitegroup/popup')->to(controller => 'Sitegroup', action => 'popup');
+  $r->get('/sitegroup/details')->to(controller => 'Sitegroup', action => 'details');
   $r->get('/sitegroup/popup_addmember')->to(controller => 'Sitegroup', action => 'popup_addmember');
   $r->get('/sitegroup/popup_removemember')->to(controller => 'Sitegroup', action => 'popup_removemember');
   $r->post('/host/import')->to(controller => 'Host', action => 'import'); # Ajax
   $r->post('/host/move')->to(controller => 'Host', action => 'move');
   $r->get('/host/popup')->to(controller => 'Host', action => 'popup'); # Clicked on host icon
+  $r->get('/host/details')->to(controller => 'Host', action => 'details'); # Clicked on host name
   $r->get('/host/popup_new')->to(controller => 'Host', action => 'popup_new'); # Create new host
   $r->post('/host/insert')->to(controller => 'Host', action => 'insert'); # Ajax
   $r->post('/host/addgroup')->to(controller => 'Host', action => 'addgroup_byname'); # Ajax
@@ -72,8 +74,10 @@ sub startup {
   $r->get('/hostgroup/popup_addmember')->to(controller => 'Hostgroup', action => 'popup_addmember');
   $r->get('/hostgroup/popup_removemember')->to(controller => 'Hostgroup', action => 'popup_removemember');
   $r->get('/hostgroup/popup')->to(controller => 'Hostgroup', action => 'popup');
+  $r->get('/hostgroup/details')->to(controller => 'Hostgroup', action => 'details'); # Clicked on hostgroup name
   $r->post('/commlink/import')->to(controller => 'Commlink', action => 'import'); # Ajax
   $r->post('/commlink/insert')->to(controller => 'Commlink', action => 'insert'); # Ajax
+  $r->get('/commlink/details')->to(controller => 'Commlink', action => 'details'); # Clicked on a commlink name
   $r->post('/loopback/seen')->to(controller => 'Host', action => 'seen'); # SEEN thread
   $r->post('/loopback/beam')->to(controller => 'World', action => 'beam'); # BEAM thread
   $r->post('/host/send_echo_request')->to(controller => 'Host', action => 'send_echo_request'); # Initiated by BEAM

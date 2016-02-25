@@ -5,12 +5,16 @@
 <TABLE class="popup">
 
 <TR class="option">
-<TD><A href="/sitegroup/details?id=<%= $sitegroup->{'id'} %>" class="<%= $sitegroup->{'state'} %>"><%= $sitegroup->{'name'} %></A></TD>
+<TD><A href="/sitegroup/details?sitegroup_id=<%= $sitegroup->{'id'} %>" class="<%= $sitegroup->{'state'} %>"><%= $sitegroup->{'name'} %></A></TD>
 <TD></TD>
 </TR>
 
 <TR class="divider">
 <TD colspan="2"><DIV /></TD>
+</TR>
+
+<TR class="option">
+<TD colspan="2"><A href="/sitegroup/details?sitegroup_id=<%= $sitegroup->{'id'} %>">Details</A></TD>               
 </TR>
 
 <TR class="option">
@@ -35,7 +39,7 @@
 
 % foreach my $site (@{$c->stash('sites')}) {
 <TR class="option">
-<TD colspan="2"><A href="/site/map?id=<%= $site->{'id'} %>" class="<%= $site->{'state'} %>"><%= $site->{'name'} %></A></TD>
+<TD colspan="2"><A href="/site/map?site_id=<%= $site->{'id'} %>" class="<%= $site->{'state'} %>"><%= $site->{'name'} %></A></TD>
 </TR>
 % }
 

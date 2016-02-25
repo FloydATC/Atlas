@@ -1,0 +1,16 @@
+% title 'Sitegroup';
+% layout 'plain';
+% my $sitegroup = $c->stash('sitegroup');
+%= include 'menu'
+
+This is sitegroup <%= $sitegroup->{'id'} %> "<%= $sitegroup->{'name'} %>"<P>
+
+(Link to world map goes here)
+<P>
+
+(Edit form goes here)
+<P>
+
+(Detailed list of sites goes here)
+<P>
+
