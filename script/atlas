@@ -69,7 +69,8 @@ sub beam {
     unless ($response->is_success) {
       print "BEAM FAILED: ".$response->status_line."\n";
     }
-    
+
+    #print "beam broken\n";    
     sleep(1);
   }
 }

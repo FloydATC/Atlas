@@ -186,14 +186,19 @@ sub beam {
       
       # Proceed to next step if there are no hosts that need checking
       unless (@hosts) {
+        #print "Nothing to do\n";
         $delay->pass;
       }
 
       # Request that one ICMP echo request message be sent to each host      
+      my $wait = 0;
+      my $interval = 0.050;
       foreach my $host (@hosts) {      
         #print "Checking ".$host->{'ip'}." (last checked ".($host->{'checked'} || 'NEVER').")\n";
         # Use ~50ms interval so we don't completely flood the network
-        Mojo::IOLoop->timer(0.050 => sub {
+        $wait += $interval;
+        Mojo::IOLoop->timer($wait => sub {
+          #print "Checking ".$host->{'ip'}." (last checked ".($host->{'checked'} || 'NEVER').")\n";
           $self->write_chunk("Checking ".$host->{'ip'}." (last checked ".($host->{'checked'} || 'NEVER').")\n");
           my $url = $self->url_for('/host/send_echo_request');
           my $head = { Accept=>'*/*' };
@@ -201,12 +206,14 @@ sub beam {
           $ua->post($url, $head, form => $form, $delay->begin);
         
         });
+        #print "Timer set to $wait, will check ".$host->{'ip'}."\n";
       }
       
     },
     sub {
       my $delay = shift;
 
+      #print "Exiting\n";
       $self->write_chunk("Exiting\n");
       $self->finish(); # Final chunk
     }

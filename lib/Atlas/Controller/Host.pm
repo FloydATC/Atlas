@@ -5,6 +5,7 @@ use Mojo::Base 'Mojolicious::Controller';
 use Atlas::Net::Ping;
 use Text::CSV_XS;
 use Data::Dumper;
+use Encode;
 
 
 # Action
@@ -489,11 +490,11 @@ sub send_echo_request {
       # The pcap thread is already listening for ICMP echo replies (and anything else)
       my $packet = Atlas::Net::Ping->new( destination => $host->{'ip'}, id => 1, seq => 1 );
       $packet->send if $packet;
-      Mojo::IOLoop->timer(0.200 => sub {
+      Mojo::IOLoop->timer(0.100 => sub {
         my $packet = Atlas::Net::Ping->new( destination => $host->{'ip'}, id => 1, seq => 2 );
         $packet->send if $packet;
       });
-      Mojo::IOLoop->timer(0.400 => sub {
+      Mojo::IOLoop->timer(0.200 => sub {
         my $packet = Atlas::Net::Ping->new( destination => $host->{'ip'}, id => 1, seq => 3 );
         $packet->send if $packet;
       });
@@ -541,7 +542,7 @@ sub import {
   # Did we actually receive a file?
   if ($file) {
     my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, sep_char => $separator });
-    my @lines = split(/[\r\n]+/, $file->slurp);
+    my @lines = map { decode("UTF-8", $_) } split(/[\r\n]+/, $file->slurp);
     if ($self->param('execute')) {
       # Execute import
       while ($skip) { shift @lines; $skip--; }   
@@ -618,7 +619,7 @@ sub import_loop {
   
   # Are we done?
   unless ($line) {
-    $self->write_chunk("<P><B>Import completed with $errors error".($errors == 1 ? '' : 's')."</B></P>");
+    $self->write_chunk(encode("UTF-8", "<P><B>Import completed with $errors error".($errors == 1 ? '' : 's')."</B></P>"));
     $self->finish(); # Final chunk
     return;
   }
@@ -653,7 +654,7 @@ sub import_loop {
     unless (scalar @parts == 4) { $invalid = 1; }
     foreach my $part (@parts) {
       $part =~ s/\D//g; # Remove single quotes 
-      if ($part < 0 || $part > 255) { $invalid = 1; }
+      if ($part eq '' || $part < 0 || $part > 255) { $invalid = 1; }
     }
     if ($invalid) {
       $self->write_chunk('<DIV class="error">Invalid IP address '.$host->{'ip'}.' rejected, replaced with NULL.</DIV>') if $debug >= 1;
@@ -766,7 +767,7 @@ sub import_loop {
       # Look up the site ID
       {
         my $statement = "SELECT id FROM sites WHERE $site_key_field = $site_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       };
       
@@ -779,7 +780,7 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">(Site) '.$err.'</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">(Site) '.$err.'</DIV>')) if $debug >= 1;
           $errors++;
         }
         my $site_hashref = $res->hashes->first;
@@ -804,7 +805,7 @@ sub import_loop {
           INSERT INTO hosts (".join(',',@fields,$host_key_field).") 
           VALUES (".join(',',@values,$host_key_value).")
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
 
@@ -816,7 +817,7 @@ sub import_loop {
           INSERT INTO hostgroups (".join(',',@fields,$hostgroup_key_field).") 
           VALUES (".join(',',@values,$hostgroup_key_value).")
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       
@@ -832,7 +833,7 @@ sub import_loop {
           if ($err =~ /Duplicate entry/) {
             $self->write_chunk("Host already exists<BR>\n") if $debug >= 3;
           } else {
-            $self->write_chunk('<DIV class="error">(Host) '.$err.'</DIV>') if $debug >= 1;
+            $self->write_chunk(encode("UTF-8", '<DIV class="error">(Host) '.$err.'</DIV>')) if $debug >= 1;
             $errors++;
           }
         }
@@ -849,7 +850,7 @@ sub import_loop {
           if ($err =~ /Duplicate entry/) {
             $self->write_chunk("Hostgroup already exists<BR>\n") if $debug >= 3;
           } else {
-            $self->write_chunk('<DIV class="error">(Hostgroup) '.$err.'</DIV>') if $debug >= 1;
+            $self->write_chunk(encode("UTF-8", '<DIV class="error">(Hostgroup) '.$err.'</DIV>')) if $debug >= 1;
             $errors++;
           }
         }
@@ -864,7 +865,7 @@ sub import_loop {
         $self->write_chunk("Update existing host instead<BR>\n") if $debug >= 3;
         $can_pass = 0;
         my $statement = "SELECT id FROM hosts WHERE $host_key_field = $host_key_value"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
 
@@ -873,7 +874,7 @@ sub import_loop {
         $self->write_chunk("Update existing hostgroup instead<BR>\n") if $debug >= 3;
         $can_pass = 0;
         my $statement = "SELECT id FROM hostgroups WHERE $hostgroup_key_field = $hostgroup_key_value AND site = $site_id"; # These variables are safe
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       $delay->pass if $can_pass; # Will wait for $delay->begin callbacks if not
@@ -887,7 +888,7 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">(Host) '.$err.'</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">(Host) '.$err.'</DIV>')) if $debug >= 1;
           $errors++;
         }
         $host_hashref = $res->hashes->first;
@@ -898,7 +899,7 @@ sub import_loop {
         my $err = shift;
         my $res = shift;
         if ($err) {
-          $self->write_chunk('<DIV class="error">(Hostgroup) '.$err.'</DIV>') if $debug >= 1;
+          $self->write_chunk(encode("UTF-8", '<DIV class="error">(Hostgroup) '.$err.'</DIV>')) if $debug >= 1;
           $errors++;
         }
         $hostgroup_hashref = $res->hashes->first;
@@ -914,7 +915,7 @@ sub import_loop {
           SET ".join(',',map { $_.'='.$host->{$_} } @fields)."
           WHERE id = ".int($host_hashref->{'id'} || 0)."
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
  
@@ -928,7 +929,7 @@ sub import_loop {
           SET ".join(',',map { $_.'='.$hostgroup->{$_} } @fields)."
           WHERE id = ".int($hostgroup_hashref->{'id'} || 0)."
         ";
-        $self->write_chunk('sql: '.$statement."<BR>\n") if $debug >= 2;
+        $self->write_chunk(encode("UTF-8", 'sql: '.$statement."<BR>\n")) if $debug >= 2;
         $db->query($statement, $delay->begin);
       }
       
@@ -958,7 +959,7 @@ sub import_loop {
       # Loop. Looks recursive but does not stack because we are inside a Mojo::IOLoop
       $self->write_chunk("<HR>\n") if $debug >= 2;
       $self->write_chunk("|\n") if $debug < 2;
-      $self->write_chunk("<!-- Processed line: $line  -->\n");
+      $self->write_chunk(encode("UTF-8", "<!-- Processed line: $line  -->\n"));
       $self->stash( 'errors' => $errors );
       $self->import_loop(); 
     }
