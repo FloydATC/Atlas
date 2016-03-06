@@ -968,6 +968,215 @@ sub import_loop {
 }
 
 
+sub execute {
+  my $self = shift;
+  
+  my @cmds = split(/[\r\n]+/, $self->param('cmds'));
+  my $host_id = $self->param('host_id');
+  if ($host_id && @cmds) {
+    # Received host + one or more commands to execute
+    $self->render_later;
+    my $db = $self->mysql->db;
+    my $host = undef;
+    
+    Mojo::IOLoop->delay(
+      sub {
+        my $delay = shift;
+                  
+        # Look up the host ID
+        #print "Looking up details for host $host_id\n";
+        $db->query(Atlas::Model::Host->query_get, $host_id, $delay->begin);
+      },
+      sub {
+        my $delay = shift;
+
+        # Fetch host details and stash them
+        {
+          my $err = shift;
+          my $res = shift;
+          die $err if $err;
+          $host = $res->hashes->first;
+          $self->stash( 'host' => $host );
+          #print "Found host ".$host->{'id'}.": ".$host->{'name'}."\n";
+        };
+        
+        # Connect
+        # We will use Mojo::IOLoop->client as a non-blocking Telnet client.
+        # Our callback 'on => read' must act as a non-blocking finite state machine to 
+        # log in, execute one or more commands, then close the connection
+        # We must always respond in a way that triggers more data from the remote host
+        # (i.e. another callback)  
+        my $state = 'connect';
+        my $buffer = '';
+        # ->client() takes two arguments; a hashref with connection parameters and an on_connect callback
+        my $id = Mojo::IOLoop->client( 
+          { address => $host->{'ip'}, port => 23 },
+          sub {
+            my ($loop, $err, $stream) = @_;
+            #print "Callback loop=$loop, err=".($err // '(undef)').", stream=".($stream // '(undef)')."\n";
+            $self->write_chunk("\n"); # Let the HTTP client know we're alive
+ 
+            # ->connect() may have failed (e.g. connection refused, timeout)
+            if ($err) {
+              $self->write_chunk("Telnet to ".$host->{'ip'}." failed: $err\n");
+              $self->finish;
+              die "Telnet to ".$host->{'ip'}." failed: $err";
+            }
+
+            $stream->on(
+              read => sub {
+                my ($stream, $bytes) = @_;
+              
+                # We have received something from the remote host, add it to our $buffer
+                $buffer .= $bytes;
+                #print "Buffer=[$buffer]\n";
+                #print unpack("H*", $buffer)."\n";
+
+                # Check for telnet control codes. Some hosts will block while waiting for a response.
+                if ($buffer =~ /^\xff/) {
+                  while ($buffer =~ /^\xff([\xf0-\xff])(.?)/) {
+                    # Look for (and send minimal responses to) telnet control codes
+                    my $code = ord($1);
+                    my $option = ord($2); # Remember: Not all control codes have an option code so this may be bogus
+                    my $length = 2; # Assume there is no option code
+                    #print "Telnet control code $code: ".unpack("H*", substr($buffer,0,3))."\n";
+                    if ($code == 0xf0) {} # SE
+                    if ($code == 0xf1) {} # NOP
+                    if ($code == 0xf2) {} # DM
+                    if ($code == 0xf3) {} # BRK
+                    if ($code == 0xf4) {} # IP
+                    if ($code == 0xf5) {} # AO
+                    if ($code == 0xf6) { $stream->write(chr(0xff).chr(0xf1)); } # AYT (Are You There? Reply with NOP to acknowledge)
+                    if ($code == 0xf7) {} # EC
+                    if ($code == 0xf8) {} # EL
+                    if ($code == 0xf9) {} # GA 
+                    if ($code == 0xfa) {} # SB (should never happen)
+                    if ($code == 0xfb) { $length = 3; } # WILL
+                    if ($code == 0xfc) { $length = 3; } # WON'T
+                    if ($code == 0xfd) { $length = 3; $stream->write(chr(0xff).chr(0xfc).chr($option)) } # DO (reply that we WON'T)
+                    if ($code == 0xfe) { $length = 3; } # DON'T
+                    if ($code == 0xff) {} # IAC (should never appear here)
+                    $buffer = substr($buffer, $length); # Remove first $length number of bytes
+                  }
+                }
+                
+                if ($state eq 'connect' && $buffer =~ /login\:/i) {
+                  # Optional during connect: Login
+                  # print "Sending username\n";
+                  $stream->write($self->param('login')."\n");
+                  $buffer = '';
+                  return;
+                }
+                if ($state eq 'connect' && $buffer =~ /password\:/i) {
+                  # Expected during connect: Password
+                  #print "Sending password\n";
+                  $stream->write($self->param('password')."\n");
+                  $state = $self->param('enable') ? 'enable' : 'ready'; # Give command 'enable' at first command prompt?
+                  $buffer = '';
+                  return;
+                }
+                if ($state eq 'enable password' && $buffer =~ /password\:/i) {
+                  # If an enable password was specified, we will get a prompt for this
+                  #print "Sending enable password\n";
+                  $stream->write($self->param('enable')."\n");
+                  $state = 'ready';
+                  $buffer = '';
+                  return;
+                }
+                
+                # Generally, try to avoid "-- More --" prompts because they pollute the data
+                # If we encounter them, try to skip ahead by sending a SPACE character
+                # Hint: On Cisco, use "terminal datadump", "terminal length 0" or atleast "terminal length 512" (where supported)
+                # Hint: On Juniper, use "| no-more"
+                if ($buffer =~ /^( --More-- )$/m || $buffer =~ /^(---\(more.*\)---)$/m) {
+                  warn "WARNING: Received '$1' while communicating with ".$host->{'ip'}.", please check your commands to avoid garbage output";
+                  $stream->write(" ");
+                }
+                
+                # From here on, everything is triggered by a command line prompt.
+                # Maybe add some more logic here but at first contact we have no idea about make or model
+                # There is a difficult balance between detecting all kinds of prompts while NOT 
+                # triggering on configuration data or other data that may look like a prompt. Use anchors!!
+                # If the data before the prompt mark may have spaces in it, we're pretty much screwed.
+                my $prompt = '^[\w\-\@]+[\>\#]\s{0,1}$';
+                if ($buffer =~ /$prompt/m) {
+                  #print "## Command prompt detected ##\n";
+                  if ($state eq 'enable') {
+                    # If an enable password was specified, the first command should be 'enable'
+                    #print "Sending enable command\n";
+                    $stream->write("enable\n");
+                    $state = 'enable password';
+                    $buffer = '';
+                    return;
+                  }
+                  if ($state eq 'ready') {
+                    $self->write_chunk($buffer);
+                    $buffer = '';
+                  
+                    my $cmd = shift @cmds;
+                    unless ($cmd) {
+                      print "No more commands, finishing.\n";
+                      $stream->close;
+                      $self->finish;
+                      return;
+                    }
+                    $self->stash( 'cmds' => join("\n", @cmds) );
+                    print "Sending command: $cmd\n";
+                    $stream->write($cmd."\n");
+                    return;
+                  }
+                }
+                # Still here? Assume more data will arrive via another callback.          
+                return;
+              },
+              error => sub {
+                my ($stream, $err) = @_;
+                
+                # Connection broken unexpectedly (or timed out because we did something stupid?)
+                $self->write_chunk("Telnet session with ".$host->{'ip'}." failed: $err\n");
+                $self->finish;
+                die "Telnet session with ".$host->{'ip'}." failed: $err";
+              }
+            );
+          }
+        );
+        # At this point we have initiated a ->connect() and are expecting a callback
+        $self->write_chunk("\n"); # LEt the HTTP client know we're alive
+      }
+    );      
+    
+    
+  } else {
+    # Present empty form
+    $self->render_later;
+    my $db = $self->mysql->db;
+    my $host = undef;
+    
+    Mojo::IOLoop->delay(
+      sub {
+        my $delay = shift;
+                  
+        # Get all hosts
+        $db->query(Atlas::Model::Host->query_all, $delay->begin);
+      },
+      sub {
+        my $delay = shift;
+
+        # Fetch hosts and stash them
+        {
+          my $err = shift;
+          my $res = shift;
+          die $err if $err;
+          $self->stash( 'hosts' => $res->hashes );
+        };
+
+        # Show form
+        $self->render( template => 'host_execute' );
+      }
+    );
+  }
+}
+
 
 1;
 

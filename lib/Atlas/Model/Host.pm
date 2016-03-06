@@ -14,6 +14,17 @@ sub query_get {
 }
 
 
+sub query_all {
+  return "
+    SELECT 
+      *,
+      STATE(up) AS state 
+    FROM hosts
+    ORDER BY name, id
+  ";
+}
+
+
 sub query_move {
   return "
     UPDATE hosts    

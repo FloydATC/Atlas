@@ -59,6 +59,7 @@ sub startup {
   $r->get('/sitegroup/popup_removemember')->to(controller => 'Sitegroup', action => 'popup_removemember');
   $r->post('/host/import')->to(controller => 'Host', action => 'import'); # Ajax
   $r->post('/host/move')->to(controller => 'Host', action => 'move');
+  $r->any('/host/execute')->to(controller => 'Host', action => 'execute'); # GET empty form or POST command sequence
   $r->get('/host/popup')->to(controller => 'Host', action => 'popup'); # Clicked on host icon
   $r->get('/host/details')->to(controller => 'Host', action => 'details'); # Clicked on host name
   $r->get('/host/popup_new')->to(controller => 'Host', action => 'popup_new'); # Create new host

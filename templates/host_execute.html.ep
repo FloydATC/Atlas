@@ -1,0 +1,25 @@
+% title 'Execute commands';
+% layout 'plain';
+% my @hosts = @{$c->stash('hosts')};
+%= include 'menu'
+
+<FORM method="POST" action="/host/execute">
+
+Host <SELECT name="host_id">
+% foreach my $host (@hosts) {
+<OPTION value="<%= $host->{'id'} %>"><%= $host->{'name'} %></OPTION>
+% }
+</SELECT><BR>
+
+Login <INPUT type="text" name="login" value=""><BR>
+
+Password <INPUT type="password" name="password" value=""><BR>
+
+Enable password <INPUT type="password" name="enable" value=""><BR>
+
+Commands:<BR>
+<TEXTAREA name="cmds"></TEXTAREA>
+
+<INPUT type="submit" value="Execute">
+
+</FORM>
