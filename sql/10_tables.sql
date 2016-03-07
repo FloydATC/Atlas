@@ -84,9 +84,9 @@ CREATE TABLE `hostgroupmembers` (
   `hostgroup` int(11) NOT NULL,
   UNIQUE KEY `hostgroupmembers` (`host`,`hostgroup`),
   KEY `hostgroup` (`hostgroup`),
-  CONSTRAINT `hostgroupmembers_ibfk_2` FOREIGN KEY (`hostgroup`) REFERENCES `hostgroups` (`id`),
-  CONSTRAINT `hostgroupmembers_ibfk_1` FOREIGN KEY (`host`) REFERENCES `hosts` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  CONSTRAINT `hostgroupmembers_ibfk_1` FOREIGN KEY (`host`) REFERENCES `hosts` (`id`),
+  CONSTRAINT `hostgroupmembers_ibfk_2` FOREIGN KEY (`hostgroup`) REFERENCES `hostgroups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -116,7 +116,7 @@ CREATE TABLE `hostgroups` (
   UNIQUE KEY `node` (`node`),
   KEY `site` (`site`),
   CONSTRAINT `hostgroups_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -176,7 +176,7 @@ CREATE TABLE `hosts` (
   KEY `ip` (`ip`),
   KEY `site` (`site`),
   CONSTRAINT `hosts_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -196,10 +196,10 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER before_host_insert BEFORE INSERT ON hosts
   FOR EACH ROW
   BEGIN
-    IF (NEW.x IS NULL AND NEW.y IS NULL)
+    IF (NEW.x IS NULL AND NEW.y IS NULL) 
     THEN
       SET NEW.x = 100 + RAND()*200;
       SET NEW.y = 100 + RAND()*200;
@@ -223,12 +223,12 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_host_update BEFORE UPDATE ON hosts
+/*!50003 CREATE*/ /*!50017 DEFINER=`atlas`@`%`*/ /*!50003 TRIGGER before_host_update BEFORE UPDATE ON hosts
   FOR EACH ROW
   BEGIN
-    IF (NEW.ip = '' OR NEW.ip = '0.0.0.0')
+    IF (NEW.ip = '' OR NEW.ip = '0.0.0.0') 
     THEN
-      SET NEW.ip = NULL;           
+      SET NEW.ip = NULL;
     END IF;
   END */;;
 DELIMITER ;
@@ -272,9 +272,9 @@ CREATE TABLE `sitegroupmembers` (
   `sitegroup` int(11) NOT NULL,
   UNIQUE KEY `sitegroupmembers` (`site`,`sitegroup`),
   KEY `sitegroup` (`sitegroup`),
-  CONSTRAINT `sitegroupmembers_ibfk_2` FOREIGN KEY (`sitegroup`) REFERENCES `sitegroups` (`id`),
-  CONSTRAINT `sitegroupmembers_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  CONSTRAINT `sitegroupmembers_ibfk_1` FOREIGN KEY (`site`) REFERENCES `sites` (`id`),
+  CONSTRAINT `sitegroupmembers_ibfk_2` FOREIGN KEY (`sitegroup`) REFERENCES `sitegroups` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,7 +301,7 @@ CREATE TABLE `sitegroups` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `node` (`node`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -350,9 +350,12 @@ CREATE TABLE `sites` (
   `y` int(11) DEFAULT NULL,
   `up` decimal(5,4) DEFAULT NULL,
   `node` int(11) DEFAULT NULL,
+  `type` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
-  UNIQUE KEY `node` (`node`)
+  UNIQUE KEY `node` (`node`),
+  KEY `type` (`type`),
+  CONSTRAINT `sites_ibfk_1` FOREIGN KEY (`type`) REFERENCES `sitetypes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -412,6 +415,31 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `sitetypes`
+--
+
+DROP TABLE IF EXISTS `sitetypes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sitetypes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL,
+  `icon` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sitetypes`
+--
+
+LOCK TABLES `sitetypes` WRITE;
+/*!40000 ALTER TABLE `sitetypes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `sitetypes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `statechanges`
 --
 
@@ -447,4 +475,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-02-25  8:26:14
+-- Dump completed on 2016-03-07 21:01:47

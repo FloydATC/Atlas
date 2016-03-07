@@ -9,7 +9,9 @@
 </HEAD>
 <BODY>
 <%= content %>
-<DIV id="footer">Source: <A href="https://github.com/FloydATC/Atlas.git">https://github.com/FloydATC/Atlas.git</A><DIV>
+<DIV id="footer">
+<HR>
+Source: <A href="https://github.com/FloydATC/Atlas.git">https://github.com/FloydATC/Atlas.git</A><DIV>
 </BODY>
 </HTML>
 

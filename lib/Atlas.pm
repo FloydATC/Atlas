@@ -44,6 +44,7 @@ sub startup {
   $r->post('/site/insert')->to(controller => 'Site', action => 'insert'); # Ajax
   $r->post('/site/addgroup')->to(controller => 'Site', action => 'addgroup_byname'); # Ajax
   $r->post('/site/removegroup')->to(controller => 'Site', action => 'removegroup'); # Ajax 
+  $r->get('/site/details')->to(controller => 'Site', action => 'details');
   $r->get('/site/popup')->to(controller => 'Site', action => 'popup');
   $r->get('/sitemap/popup')->to(controller => 'Site', action => 'menu'); # Clicked on site icon
   $r->get('/site/popup_new')->to(controller => 'Site', action => 'popup_new'); # Create new site

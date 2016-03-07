@@ -1,5 +1,6 @@
 package Atlas::Controller::Site;
 use Mojo::Base 'Mojolicious::Controller';
+use Mojo::Home;
 
 use Text::CSV_XS;
 use Data::Dumper;
@@ -10,6 +11,36 @@ sub welcome {
 
   # Render response
   $self->render( text => 'Hello there.' );
+}
+
+
+sub details {
+  my $self = shift;
+
+  $self->render_later;
+  my $db = $self->mysql->db;
+  my $site_id = $self->param('site_id');
+  unless ($site_id) { $self->res->code(400); $self->render( text => 'Required parameter missing' ); return; }
+
+  Mojo::IOLoop->delay(
+    sub {
+      my $delay = shift;
+      $db->query(Atlas::Model::Site->query_get, $site_id, $delay->begin);
+    },
+    sub {
+      my $delay = shift;
+      {
+        my $err = shift;
+        my $res = shift;
+        die $err if $err;
+        $self->stash( site => $res->hashes->first );
+      };
+
+      # Render response
+      $self->render( template => 'site_details', type => 'html', format => 'html' );
+    }
+  )->wait;
+
 }
 
 sub map {
@@ -256,6 +287,9 @@ sub svg {
   $self->render_later;
   my $db = $self->mysql->db;
   my $id = $self->param('id');
+  my $icons = Mojo::Home->new()->rel_dir('public/icons');
+  print "I think the icons are in $icons\n";
+  $self->stash( 'icons' => $icons );
   Mojo::IOLoop->delay(
     sub {
       my $delay = shift;

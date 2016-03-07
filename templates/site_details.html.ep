@@ -1,0 +1,22 @@
+% title 'Site';
+% layout 'plain';
+% my $site = $c->stash('site');
+%= include 'menu'
+
+This is site <%= $site->{'id'} %> "<%= $site->{'name'} %>"<P>
+
+(Link to world map goes here)
+<P>
+
+(Edit form goes here)
+<P>
+
+(List of site group(s) goes here)
+<P>
+
+(Detailed list of peer sites goes here)
+<P>
+
+(Maybe tabs for the more detailed stuff... what stuff?)
+<P>
+

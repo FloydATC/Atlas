@@ -15,6 +15,7 @@ BEGIN
   TRUNCATE hostgroups;
   TRUNCATE hosts;
   TRUNCATE sitegroupmembers;
+  TRUNCATE sitetypes;
   TRUNCATE sitegroups;
   TRUNCATE sites;
   TRUNCATE statechanges;

@@ -4,10 +4,12 @@ package Atlas::Model::World;
 sub query_sites {
   return "
     SELECT 
-      *,
-      STATE(up) AS state 
+      sites.*,
+      STATE(up) AS state,
+      sitetypes.icon AS icon
     FROM sites
-    ORDER BY name, id   
+    LEFT JOIN sitetypes ON (sitetypes.id = sites.type)
+    ORDER BY sites.name, sites.id   
   ";
 }
 

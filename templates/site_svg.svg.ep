@@ -1,6 +1,7 @@
 % layout 'plain';
 % my $id = $c->param('id');
 % my $site = $c->stash('site');
+% my $icons = $c->stash('icons');
 % title 'sitemap'.$id;
 
 
@@ -94,6 +95,13 @@
 % foreach my $host (@{$c->stash('hosts')}) {
 %   my $x = $host->{'x'};
 %   my $y = $host->{'y'};
+%   my $icon = 'unknown.png';
+%   if ( $host->{'brand'} && -e $icons.'/'.lc($host->{'brand'}).'.png' ) { 
+%     $icon = lc($host->{'brand'}).'.png';
+%   }
+%   if ( $host->{'brand'} && $host->{'model'} && -e $icons.'/'.lc($host->{'brand'}).'/'.lc($host->{'model'}).'.png' ) { 
+%     $icon = lc($host->{'brand'}).'/'.lc($host->{'model'}).'.png'; 
+%   }
 
 <svg x="<%= $x-25 %>" y="<%= $y-25 %>"
   class="host"
@@ -111,6 +119,7 @@
   r="20" 
   class="<%= $host->{'state'} %>"
 />
+<image x="5" y="5" width="40" height="40" xlink:href="/icons/<%= $icon %>" />
 <text x="0" y="60"><%= $host->{'name'} %></text>
 </svg>
 % }

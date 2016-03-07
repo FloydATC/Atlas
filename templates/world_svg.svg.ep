@@ -72,6 +72,7 @@
   class="<%= $site->{'state'} %>"
   stroke="black" 
   fill="gray" />
+<image x="5" y="5" width="40" height="40" xlink:href="/icons/<%= $site->{'icon'} || 'unknown.png' %>" />
 <text x="0" y="60" font-size="9"><%= $site->{'name'} %></text>
 </svg>
 % }

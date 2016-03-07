@@ -13,10 +13,12 @@ sub query_move {
 sub query_get {
   return "
     SELECT 
-      *,
-      STATE(up) AS state
+      sites.*,
+      STATE(up) AS state,
+      sitetypes.icon AS icon
     FROM sites
-    WHERE id = ?
+    LEFT JOIN sitetypes ON (sitetypes.id = sites.type)
+    WHERE sites.id = ?
   ";
 }
 

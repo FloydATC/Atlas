@@ -1115,13 +1115,13 @@ sub execute {
                   
                     my $cmd = shift @cmds;
                     unless ($cmd) {
-                      print "No more commands, finishing.\n";
+                      #print "No more commands, finishing.\n";
                       $stream->close;
                       $self->finish;
                       return;
                     }
                     $self->stash( 'cmds' => join("\n", @cmds) );
-                    print "Sending command: $cmd\n";
+                    #print "Sending command: $cmd\n";
                     $stream->write($cmd."\n");
                     return;
                   }
